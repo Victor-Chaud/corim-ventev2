@@ -1,0 +1,87 @@
+
+.news{
+	background:#AFC632;
+	margin-bottom:10px;
+	margin-left:10px;
+	border:1px solid #D1541D
+}
+
+.news-content{
+	width:773px;
+	float:left;
+	padding-left:10px;
+	padding-right:10px;
+	padding-top:6px;
+}
+
+.news-content a{
+	float:left;
+	margin-left:10px;
+}
+
+.news-content a b{color:#333}
+
+.news-push{
+	float:right;
+	margin-top:5px;
+	margin-right:7px;
+	color:#FFF;
+	font-weight:bold;
+	border:1px solid #FFF;
+	background:#333;
+	padding:8px 10px;
+	text-align:center
+}
+
+.news-push:hover{
+	border:1px solid #999;
+	color:#FFF;
+}
+
+.news_read{
+	background:#D2E084;
+	margin-bottom:10px;
+	margin-left:10px;
+}
+
+.checkboxplein{
+	background:url(../images/check_plein.png) 0px 0px no-repeat;
+	width:18px;
+	height:18px;
+	display:block;
+	float:left;
+	margin-top:12px;
+	cursor:pointer;
+}
+
+.checkboxvide{
+	background:url(../images/check_vide.png) 0px 0px no-repeat;
+	width:18px;
+	height:18px;
+	display:block;
+	float:left;
+	margin-top:12px;
+	cursor:pointer;
+}
+
+.messagerie-top{
+	background:url(../images/contact-top.png) 0px 0px no-repeat;
+	width:710px;
+	height:13px;
+}
+
+.messagerie-bottom{
+	background:url(../images/contact-bottom.png) 0px 0px no-repeat;
+	width:710px;
+	height:12px;
+}
+
+.message_valid{
+	background:url(../images/fond-message-valid.png) 0px 0px repeat-y;
+	text-align:center;
+	width:710px;
+	margin-left:3px;
+}
+
+.news-content-date{float:left;color:#D1541D;font-size:12px;margin:4px;font-weight:bold;text-align:center}
+.news-content-name{float:left;margin-left:10px;color:#000;font-weight:bold;margin-top:10px}

@@ -1,0 +1,16 @@
+nextjscorim_cocoon	200	firstsearch?action=nextjscorim&residence=cocoon
+nextjscorim_all	200	firstsearch?action=nextjscorim
+nextjscorim_type_t2	200	firstsearch?action=nextjscorim&type=T2
+nextjscorim_city	200	firstsearch?action=nextjscorim&city=AGDE
+nextjscorim_budget	200	firstsearch?action=nextjscorim&minBudget=200000&maxBudget=300000
+nextjscorim_combo	200	firstsearch?action=nextjscorim&residence=cocoon&type=T3&maxBudget=400000
+first_noparams	500	firstsearch
+first_default_empty	200	firstsearch?action=search
+first_default_prog	200	firstsearch?programmes=41&typologie=0
+first_light_all	500	firstsearch?action=light&programmes=0
+first_light_prog	500	firstsearch?action=light&programmes=41
+first_withref	500	firstsearch?action=withref&programme=41&ref=B31
+first_withref_none	500	firstsearch?action=withref&programme=29&ref=ZZZ
+first_callback	500	firstsearch?action=light&programmes=41&callback=foo
+search_allnews	200	search?action=allnews
+search_light_prog	200	search/index?action=light&programmes=41

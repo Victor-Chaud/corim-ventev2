@@ -1,0 +1,19 @@
+/*PAGE CONNEXION*/
+#login {
+    background: rgba(255, 255, 255, 0.3) none repeat scroll 0 0;
+    border-radius: 10px;
+    color: #626161;
+    margin: 0 auto;
+    max-width: 310px;
+    padding: 30px;
+}
+
+#logoff {
+    background: rgba(0, 0, 0, 0) url("../images/logo-corim.png") no-repeat scroll 0 0 / contain ;
+    display: block;
+    float: none;
+    height: 80px;
+    margin: 0 auto 15px;
+    padding: 0;
+    width: 251px;
+}

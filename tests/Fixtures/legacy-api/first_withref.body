@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style type="text/css">
+div#framework_error { background:#fff; border:solid 1px #ccc; font-family:sans-serif; color:#111; font-size:14px; line-height:130%; }
+div#framework_error h3 { color:#fff; font-size:16px; padding:8px 6px; margin:0 0 8px; background:#f15a00; text-align:center; }
+div#framework_error a { color:#228; text-decoration:none; }
+div#framework_error a:hover { text-decoration:underline; }
+div#framework_error strong { color:#900; }
+div#framework_error p { margin:0; padding:4px 6px 10px; }
+div#framework_error tt,
+div#framework_error pre,
+div#framework_error code { font-family:monospace; padding:2px 4px; font-size:12px; color:#333;
+	white-space:pre-wrap; /* CSS 2.1 */
+	white-space:-moz-pre-wrap; /* For Mozilla */
+	word-wrap:break-word; /* For IE5.5+ */
+}
+div#framework_error tt { font-style:italic; }
+div#framework_error tt:before { content:">"; color:#aaa; }
+div#framework_error code tt:before { content:""; }
+div#framework_error pre,
+div#framework_error code { background:#eaeee5; border:solid 0 #D6D8D1; border-width:0 1px 1px 0; }
+div#framework_error .block { display:block; text-align:left; }
+div#framework_error .stats { padding:4px; background: #eee; border-top:solid 1px #ccc; text-align:center; font-size:10px; color:#888; }
+div#framework_error .backtrace { margin:0; padding:0 6px; list-style:none; line-height:12px; }</style>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Database Error</title>
+<base href="http://php.net/" />
+</head>
+<body>
+<div id="framework_error" style="width:42em;margin:20px auto;">
+<h3>Database Error</h3>
+<p>Une erreur de base de données est survenue lors de l&#039;exécution de la procèdure demandée. Veuillez vous référer à l&#039;erreur renvoyée ci-dessous pour plus d&#039;informations.</p>
+<p>system/libraries/drivers/Database/Mysqli.php <strong>[142]:</strong></p>
+<p><code class="block">L'erreur SQL suivante est survenue: Expression #1 of ORDER BY clause is not in SELECT list, references column 'sql_corim_vente_.appartements.prix' which is not in SELECT list; this is incompatible with DISTINCT - SELECT DISTINCT projet.projet_titre, projet.projet_id, projet.projet_lieu FROM appartements INNER JOIN projet ON appartements.lot = projet.projet_id WHERE appartements.numero = 'B31' ORDER BY appartements.prix</code></p>
+<h3>Stack Trace</h3>
+<ul class="backtrace"><li>system/libraries/drivers/Database/Mysqli.php <strong>[90]:</strong><pre>Kohana_Mysqli_Result->__construct( mysqli Object
+(
+    [affected_rows] =&gt; 
+    [client_info] =&gt; 
+    [client_version] =&gt; 50011
+    [connect_errno] =&gt; 0
+    [connect_error] =&gt; 
+    [errno] =&gt; 
+    [error] =&gt; 
+    [error_list] =&gt; 
+    [field_count] =&gt; 
+    [host_info] =&gt; 
+    [info] =&gt; 
+    [insert_id] =&gt; 
+    [server_info] =&gt; 
+    [server_version] =&gt; 
+    [stat] =&gt; 
+    [sqlstate] =&gt; 
+    [protocol_version] =&gt; 
+    [thread_id] =&gt; 
+    [warning_count] =&gt; 
+)
+, 1, SELECT DISTINCT projet.projet_titre, projet.projet_id, projet.projet_lieu FROM appartements INNER JOIN projet ON appartements.lot = projet.projet_id WHERE appartements.numero = &#039;B31&#039; ORDER BY appartements.prix )</pre></li>
+<li>system/libraries/Database.php <strong>[259]:</strong><pre>Database_Mysqli_Driver->query( SELECT DISTINCT projet.projet_titre, projet.projet_id, projet.projet_lieu FROM appartements INNER JOIN projet ON appartements.lot = projet.projet_id WHERE appartements.numero = &#039;B31&#039; ORDER BY appartements.prix )</pre></li>
+<li>application/models/model.php <strong>[323]:</strong><pre>Database_Core->query( SELECT DISTINCT projet.projet_titre, projet.projet_id, projet.projet_lieu FROM appartements INNER JOIN projet ON appartements.lot = projet.projet_id WHERE appartements.numero = &#039;B31&#039; ORDER BY appartements.prix )</pre></li>
+<li>application/controllers/firstsearch.php <strong>[67]:</strong><pre>Model_Model->ExternalLightSearchProgramWithRef( 41, B31 )</pre></li>
+<li><pre>Firstsearch_Controller->index(  )</pre></li>
+<li>system/core/Kohana.php <strong>[291]:</strong><pre>ReflectionMethod->invokeArgs( Firstsearch_Controller Object
+(
+    [template] =&gt; View Object
+        (
+            [kohana_filename:protected] =&gt; /var/www/html/corim-vente/application/views/template/json.php
+            [kohana_filetype:protected] =&gt; .php
+            [kohana_local_data:protected] =&gt; Array
+                (
+                    [content] =&gt; 
+                    [title] =&gt; Corim Promotion - Recherche
+                )
+
+        )
+
+    [auto_render] =&gt; 1
+    [uri] =&gt; URI Object
+        (
+        )
+
+    [input] =&gt; Input Object
+        (
+            [use_xss_clean:protected] =&gt; 1
+            [magic_quotes_gpc:protected] =&gt; 
+            [ip_address] =&gt; 176.131.31.52
+        )
+
+    [session] =&gt; Session Object
+        (
+            [input:protected] =&gt; Input Object
+                (
+                    [use_xss_clean:protected] =&gt; 1
+                    [magic_quotes_gpc:protected] =&gt; 
+                    [ip_address] =&gt; 176.131.31.52
+                )
+
+        )
+
+)
+ )</pre></li>
+<li><pre>Kohana::instance(  )</pre></li>
+<li>system/core/Event.php <strong>[209]:</strong><pre>call_user_func( Array
+(
+    [0] =&gt; Kohana
+    [1] =&gt; instance
+)
+ )</pre></li>
+<li>system/core/Bootstrap.php <strong>[55]:</strong><pre>Event::run( system.execute )</pre></li>
+<li>index.php <strong>[212]:</strong><pre>require( system/core/Bootstrap.php )</pre></li></ul><p class="stats">Chargé en 0.0061 secondes, 0.74MB de mémoire utilisée. Généré par Kohana v2.3.4.</p>
+</div>
+</body>
+</html>
