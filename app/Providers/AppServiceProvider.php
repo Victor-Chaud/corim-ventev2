@@ -2,12 +2,11 @@
 
 namespace App\Providers;
 
-use App\Http\Controllers\Evolutions\PrescripteurApiController;
+use App\Http\Controllers\Evolutions\PrescriberApiController;
 use App\Models\User;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
@@ -34,12 +33,11 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         URL::forceRootUrl((string) config('app.url'));
-
-        RateLimiter::for('emailing', fn () => Limit::perMinute((int) config('mail.emailing_per_minute')));
+        Paginator::useBootstrapThree();
 
         DB::listen(function (QueryExecuted $query) {
-            if (preg_match('/^\s*(?:insert|update|delete)\b[^`]*`(?:'.implode('|', PrescripteurApiController::TABLES).')`/i', $query->sql)) {
-                $query->connection->afterCommit(fn () => PrescripteurApiController::flush());
+            if (preg_match('/^\s*(?:insert|update|delete)\b[^`]*`(?:'.implode('|', PrescriberApiController::TABLES).')`/i', $query->sql)) {
+                $query->connection->afterCommit(fn () => PrescriberApiController::flush());
             }
         });
 
@@ -49,13 +47,13 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('layouts.*', function ($view) {
             $user = auth()->user();
-            $acces = $user instanceof User ? $user->acces() : '';
+            $access = $user instanceof User ? $user->access() : '';
 
             $view->with([
                 'segment1' => (string) request()->segment(1),
-                'sessionAcces' => $acces,
-                'toolbarActif' => session('SessionToolbar') === '1',
-                'messageCount' => $user instanceof User ? self::messageCount($user->id, $acces === '1') : 0,
+                'sessionAccess' => $access,
+                'toolbarActive' => session('SessionToolbar') === '1',
+                'messageCount' => $user instanceof User ? self::messageCount($user->id, $access === '1') : 0,
             ]);
         });
     }

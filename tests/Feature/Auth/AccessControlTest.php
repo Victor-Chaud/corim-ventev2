@@ -1,15 +1,15 @@
 <?php
 
-const CONNECTED_PAGES = ['/', '/welcome', '/ask_denonciations', '/ask_options', '/ask_reservations', '/denonciations', '/options', '/reservations', '/ventes', '/messagerie', '/rechercher', '/agenda', '/contact', '/cgu', '/mentions_legales', '/message', '/refused_ask'];
+const CONNECTED_PAGES = ['/', '/welcome', '/ask_denonciations', '/ask_options', '/ask_reservations', '/denonciations', '/options', '/reservations', '/ventes', '/messagerie', '/rechercher', '/contact', '/cgu', '/mentions_legales', '/message', '/refused_ask'];
 
-const ADMIN_PAGES = ['/gestion_programmes', '/ajouter_programme', '/gestion_privilege', '/emails', '/flash_info', '/gestion_prospects', '/report', '/emailing', '/gestion_clients', '/gestion_promoteurs'];
+const ADMIN_PAGES = ['/gestion_programmes', '/ajouter_programme', '/gestion_privilege', '/emails', '/flash_info', '/gestion_prospects', '/report', '/gestion_promoteurs'];
 
 const ADMIN_KEY_PAGES = ['/modifier_programme/show/%s', '/gerer_lots/show/%s', '/ajouter_lot/show/%s', '/ajouter_lots/show/%s', '/ajouter_plan/show/%s', '/gestion_programmes/diaporama_projet/%s'];
 
 const JSON_ACTIONS = ['UpdateUserPrivilege', 'GetUserPrivilege', 'GetUserPrivilegeLot', 'SupprimerLot', 'DeleteAllInProject', 'ArchivageProjet', 'DesarchivageProjet', 'DeleteFile', 'DeleteDiapo', 'JsonDatagrid/1/1', 'ShowToolbar', 'HideToolbar'];
 
 it('C12 toute page connectée sans session redirige vers /connexion sans contenu applicatif', function () {
-    $key = makeProjet()->projet_titre_key;
+    $key = makeProgram()->projet_titre_key;
 
     foreach ([...CONNECTED_PAGES, "/programme/show/$key", ...ADMIN_PAGES] as $url) {
         $response = $this->get($url);
@@ -19,11 +19,11 @@ it('C12 toute page connectée sans session redirige vers /connexion sans contenu
 });
 
 it('C13 toute page admin avec un commercial redirige vers / sans effet ni contenu', function () {
-    $projet = makeProjet();
+    $program = makeProgram();
     $commercial = makeCommercial();
     $before = json_encode([DB::table('projet')->get(), DB::table('acces')->get(), DB::table('acces_lot')->get()]);
 
-    $urls = [...ADMIN_PAGES, ...array_map(fn ($u) => sprintf($u, $projet->projet_titre_key), ADMIN_KEY_PAGES)];
+    $urls = [...ADMIN_PAGES, ...array_map(fn ($u) => sprintf($u, $program->projet_titre_key), ADMIN_KEY_PAGES)];
     foreach ($urls as $url) {
         foreach (['get', 'post'] as $method) {
             $response = $this->actingAs($commercial)->$method($url, $method === 'post' ? ['titre' => 'X', 'action' => 'project'] : []);
@@ -36,26 +36,26 @@ it('C13 toute page admin avec un commercial redirige vers / sans effet ni conten
 });
 
 it('C14 toute action json/* exige une session et un jeton CSRF', function () {
-    $projet = makeProjet();
+    $program = makeProgram();
     $user = makeCommercial();
-    DB::table('acces')->insert(['iduser' => $user->id, 'idprojet' => $projet->projet_id]);
+    DB::table('acces')->insert(['iduser' => $user->id, 'idprojet' => $program->projet_id]);
 
     foreach (JSON_ACTIONS as $action) {
-        $response = $this->post("/index.php/json/$action", ['key' => $projet->projet_titre_key, 'user' => $user->id]);
+        $response = $this->post("/index.php/json/$action", ['key' => $program->projet_titre_key, 'user' => $user->id]);
         expect($response->getStatusCode())->toBeIn([302, 401], $action);
     }
     expect((int) DB::table('projet')->value('archive'))->toBe(0)
         ->and(DB::table('acces')->count())->toBe(1);
 
     withoutTestingCsrfBypass();
-    $response = $this->actingAs(makeAdmin())->post('/index.php/json/ArchivageProjet', ['key' => $projet->projet_titre_key]);
+    $response = $this->actingAs(makeAdmin())->post('/index.php/json/ArchivageProjet', ['key' => $program->projet_titre_key]);
     expect($response->getStatusCode())->toBe(419)
         ->and((int) DB::table('projet')->value('archive'))->toBe(0);
 });
 
 it('C24 un commercial ne voit que ses programmes acces et ses lots acces_lot, grille vide sans lot', function () {
-    $mine = makeProjet(['projet_titre' => 'MON PROGRAMME']);
-    $notMine = makeProjet(['projet_titre' => 'AUTRE PROGRAMME']);
+    $mine = makeProgram(['projet_titre' => 'MON PROGRAMME']);
+    $notMine = makeProgram(['projet_titre' => 'AUTRE PROGRAMME']);
     $lotMine = makeLot($mine->projet_id, ['numero' => 'L1']);
     makeLot($mine->projet_id, ['numero' => 'L2']);
     $user = makeCommercial();
@@ -79,14 +79,14 @@ it('C24 un commercial ne voit que ses programmes acces et ses lots acces_lot, gr
 });
 
 it('C25 un commercial sur un programme absent de acces reçoit 403 ou une redirection vers /', function () {
-    $projet = makeProjet();
-    $response = $this->actingAs(makeCommercial())->get("/programme/show/$projet->projet_titre_key");
+    $program = makeProgram();
+    $response = $this->actingAs(makeCommercial())->get("/programme/show/$program->projet_titre_key");
 
     expect($response->getStatusCode() === 403 || $response->isRedirect(url('/')))->toBeTrue();
 });
 
-it('C29 les menus du gabarit sont rendus selon le rôle (8 entrées admin en plus)', function () {
-    $adminMenu = ['gestion_programmes">Programmes', 'gestion_clients">Clients', 'gestion_prospects">Prospects', 'gestion_promoteurs">Prescripteurs', 'gestion_privilege">Privilèges', 'emailing">Emailing', 'emails">Emails', 'flash_info">Flash info'];
+it('C29 les menus du gabarit sont rendus selon le rôle (5 entrées admin en plus)', function () {
+    $adminMenu = ['gestion_programmes">Programmes', 'gestion_promoteurs">Prescripteurs', 'gestion_privilege">Privilèges', 'emails">Emails', 'flash_info">Flash info'];
     $common = ['denonciations">Dénonciations', 'messagerie">Messagerie', 'contact">Contacter Corim', 'logout">Déconnexion'];
 
     $admin = $this->actingAs(makeAdmin())->get('/contact');

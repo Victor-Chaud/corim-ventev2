@@ -1,0 +1,84 @@
+.navbar { position: relative; }
+.theme-toggle { position: absolute; top: 8px; right: 15px; z-index: 3; width: 34px; height: 34px; padding: 0; border: 1px solid #ddd; border-radius: 50%; background: #fff; color: #555; line-height: 0; cursor: pointer; }
+.theme-toggle:hover, .theme-toggle:focus { background: #f0f0f0; outline: none; }
+.theme-toggle svg { width: 18px; height: 18px; }
+.theme-toggle .sun { display: none; }
+html.dark .theme-toggle { background: #3a3a3a; border-color: #555; color: #fff; }
+html.dark .theme-toggle:hover, html.dark .theme-toggle:focus { background: #444; }
+html.dark .theme-toggle .moon { display: none; }
+html.dark .theme-toggle .sun { display: inline; }
+@media (max-width: 767px) { .theme-toggle { right: 70px; } }
+@media print { .theme-toggle { display: none; } }
+html.dark, html.dark body { background: #2b2b2b; color: #fff; }
+html.dark h1, html.dark h2, html.dark h3, html.dark h4, html.dark h5, html.dark h6, html.dark label, html.dark legend, html.dark b, html.dark strong { color: #fff; }
+html.dark small, html.dark .small, html.dark .text-muted, html.dark .help-block, html.dark h1 small, html.dark h2 small, html.dark h3 small { color: #ccc; }
+html.dark hr, html.dark .page-header, html.dark legend { border-color: #555; }
+html.dark .navbar-brand img { background: #fff; border-radius: 3px; padding: 2px 4px; }
+
+html.dark .navbar-default { background: #333; border-color: #444; }
+html.dark .navbar-default .navbar-nav > li > a, html.dark .navbar-default .navbar-brand { color: #fff; }
+html.dark .navbar-default .navbar-nav > li > a:hover, html.dark .navbar-default .navbar-nav > li > a:focus, html.dark .navbar-default .navbar-nav > .open > a, html.dark .navbar-default .navbar-nav > .active > a { color: #fff; background: #444; }
+html.dark .navbar-default .navbar-toggle { border-color: #555; }
+html.dark .navbar-default .navbar-toggle:hover, html.dark .navbar-default .navbar-toggle:focus { background: #444; }
+html.dark .navbar-default .navbar-toggle .icon-bar { background: #fff; }
+html.dark .navbar-default .navbar-collapse { border-color: #444; }
+
+html.dark .form-control, html.dark input[type="text"], html.dark input[type="password"], html.dark input[type="email"], html.dark input[type="number"], html.dark input[type="file"], html.dark select, html.dark textarea, html.dark .input-group-addon { background-color: #3a3a3a; color: #fff; border-color: #555; }
+html.dark .form-control[readonly], html.dark .form-control[disabled], html.dark fieldset[disabled] .form-control { background-color: #444; color: #ddd; }
+html.dark .form-control::placeholder, html.dark input::placeholder, html.dark textarea::placeholder { color: #aaa; }
+
+html.dark .btn-default { background: #3a3a3a; color: #fff; border-color: #555; }
+html.dark .btn-default:hover, html.dark .btn-default:focus, html.dark .btn-default:active, html.dark .btn-default.active, html.dark .open > .dropdown-toggle.btn-default { background: #444; color: #fff; border-color: #666; }
+html.dark .bootstrap-select > .dropdown-toggle.bs-placeholder, html.dark .bootstrap-select > .dropdown-toggle.bs-placeholder:hover { color: #ccc; }
+
+html.dark .table, html.dark table { color: #fff; }
+html.dark .table > thead > tr > th, html.dark .table > tbody > tr > th, html.dark .table > tfoot > tr > th, html.dark .table > thead > tr > td, html.dark .table > tbody > tr > td, html.dark .table > tfoot > tr > td, html.dark .table-bordered, html.dark .table-bordered > thead > tr > th, html.dark .table-bordered > tbody > tr > td { border-color: #555; }
+html.dark .table-striped > tbody > tr:nth-of-type(odd) { background: #333; }
+html.dark .table-hover > tbody > tr:hover { background: #3d3d3d; }
+
+html.dark .panel, html.dark .well, html.dark .thumbnail, html.dark .list-group-item, html.dark .modal-content, html.dark .popover { background: #333; border-color: #555; color: #fff; }
+html.dark .panel-default > .panel-heading, html.dark .panel-footer { background: #3a3a3a; border-color: #555; color: #fff; }
+html.dark .modal-header, html.dark .modal-footer { border-color: #555; }
+html.dark .close { color: #fff; opacity: .8; text-shadow: none; }
+html.dark a.list-group-item:hover, html.dark a.list-group-item:focus { background: #3d3d3d; color: #fff; }
+html.dark .list-group-item-warning { color: #8a6d3b; }
+html.dark .dropdown-menu { background: #333; border-color: #555; }
+html.dark .dropdown-menu > li > a, html.dark .dropdown-menu .text { color: #fff; }
+html.dark .dropdown-menu > li > a:hover, html.dark .dropdown-menu > li > a:focus { background: #444; color: #fff; }
+html.dark .dropdown-menu .divider { background: #555; }
+html.dark .nav-tabs { border-color: #555; }
+html.dark .nav-tabs > li.active > a, html.dark .nav-tabs > li.active > a:hover, html.dark .nav-tabs > li.active > a:focus { background: #2b2b2b; color: #fff; border-color: #555 #555 transparent; }
+html.dark .nav > li > a:hover, html.dark .nav > li > a:focus { background: #3d3d3d; }
+html.dark .pagination > li > a, html.dark .pagination > li > span { background: #333; border-color: #555; }
+html.dark code, html.dark pre { background: #3a3a3a; color: #fff; border-color: #555; }
+
+html.dark .oldmsg, html.dark .trGray { background: #333; }
+html.dark .trGrayOff { background: #2b2b2b; }
+
+html.dark .tablesorter-green { background: #2b2b2b; border-color: #555; }
+html.dark .tablesorter-green th, html.dark .tablesorter-green thead td, html.dark .tablesorter-green tfoot th, html.dark .tablesorter-green tfoot td { background-color: #3a3a3a; background-image: none; color: #fff; border-color: #555; }
+html.dark .tablesorter-green td, html.dark .tablesorter-green tr.odd > td, html.dark .tablesorter-green tr.even > td { background-color: #2b2b2b; color: #fff; border-color: #555; }
+html.dark .tablesorter-green tr.odd > td { background-color: #333; }
+html.dark .tablesorter-green tbody > tr:hover > td { background-color: #3d3d3d; }
+
+html.dark .flexigrid div.mDiv, html.dark .flexigrid div.hDiv, html.dark .flexigrid div.bDiv, html.dark .flexigrid div.pDiv, html.dark .flexigrid div.tDiv, html.dark .flexigrid div.nBtn, html.dark .flexigrid div.sDiv { background: #333; border-color: #555; color: #fff; }
+html.dark .flexigrid div.hDiv th, html.dark .flexigrid div.hDiv th div, html.dark .flexigrid div.hDiv th.sorted, html.dark .flexigrid div.hDiv th.thOver { background: #3a3a3a; color: #fff; border-color: #555; }
+html.dark .flexigrid div.bDiv td { border-color: #444; color: #fff; }
+html.dark .flexigrid div.bDiv tr.erow td { background: #333; }
+html.dark .flexigrid div.bDiv tr:hover td, html.dark .flexigrid div.bDiv tr.trOver td { background: #3d3d3d; }
+html.dark .flexigrid div.bDiv tr.trSelected td { background: #4a4a4a; }
+html.dark .flexigrid div.bDiv td.sorted, html.dark .flexigrid div.bDiv tr.erow td.sorted { background: #383838; }
+
+html.dark .ui-widget-content { background: #333; color: #fff; border-color: #555; }
+html.dark .ui-widget-header { background: #3a3a3a; color: #fff; border-color: #555; }
+html.dark .ui-state-default, html.dark .ui-widget-content .ui-state-default, html.dark .ui-widget-header .ui-state-default { background: #444; color: #fff; border-color: #555; }
+html.dark .ui-state-hover, html.dark .ui-widget-content .ui-state-hover { background: #555; color: #fff; }
+
+html.dark #cboxContent, html.dark #cboxLoadedContent { background: #333; color: #fff; }
+html.dark #confirmBox { background: #333; color: #fff; border-color: #555; }
+html.dark #confirmBox h1, html.dark #confirmBox p { background: #333; color: #fff; }
+html.dark input[type="search"], html.dark .tablesorter-filter { background-color: #3a3a3a; color: #fff; border-color: #555; }
+html.dark .alert b, html.dark .alert strong, html.dark .alert label, html.dark .alert h4, html.dark .info b, html.dark .success b, html.dark .warning b, html.dark .error b, html.dark .validation b, html.dark .list-group-item-warning b, html.dark .last_message b { color: inherit; }
+html.dark .alert code { background: #f9f2f4; color: #c7254e; }
+html.dark .list-group-item-warning { background: #fcf8e3; color: #8a6d3b; }
+html.dark a.list-group-item-warning:hover, html.dark a.list-group-item-warning:focus { background: #faf2cc; color: #8a6d3b; }

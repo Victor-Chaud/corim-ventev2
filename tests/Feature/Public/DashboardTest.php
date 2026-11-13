@@ -5,18 +5,18 @@ use Illuminate\Support\Facades\Storage;
 
 beforeEach(fn () => Storage::fake('programmes'));
 
-function programmeItem(object $projet, string $thumb = 'vignette.jpg'): string
+function programItem(object $program, string $thumb = 'vignette.jpg'): string
 {
-    $key = $projet->projet_titre_key;
+    $key = $program->projet_titre_key;
 
-    return '#<div class="item_programme">\s*<a href="[^"]*/programme/show/'.$key.'" class="vignette">\s*<img src="[^"]*medias/programmes/'.$key.'/thumb/'.preg_quote($thumb, '#').'" alt="vignette" width="120" class="img-thumbnail" />\s*</a>\s*<a class="btn btn-info btn-xs btn-block" href="[^"]*/programme/show/'.$key.'">'.preg_quote(decoded($projet->projet_titre), '#').'<span>'.preg_quote(decoded($projet->projet_lieu), '#').'</span></a>\s*</div>#u';
+    return '#<div class="item_programme">\s*<a href="[^"]*/programme/show/'.$key.'" class="vignette">\s*<img src="[^"]*medias/programmes/'.$key.'/thumb/'.preg_quote($thumb, '#').'" alt="vignette" width="120" class="img-thumbnail" />\s*</a>\s*<a class="btn btn-info btn-xs btn-block" href="[^"]*/programme/show/'.$key.'">'.preg_quote(decoded($program->projet_titre), '#').'<span>'.preg_quote(decoded($program->projet_lieu), '#').'</span></a>\s*</div>#u';
 }
 
-function withThumb(object $projet): object
+function withThumb(object $program): object
 {
-    Storage::disk('programmes')->put("$projet->projet_titre_key/thumb/vignette.jpg", 'jpg');
+    Storage::disk('programmes')->put("$program->projet_titre_key/thumb/vignette.jpg", 'jpg');
 
-    return $projet;
+    return $program;
 }
 
 it('C1 GET / sans session redirige vers /connexion', function () {
@@ -48,28 +48,28 @@ it('C3 GET / admin : 200, titre Tableau de bord, gabarit accueil à 3 colonnes',
 });
 
 it('C4 accueil admin : une vignette par programme non archivé, projet_id décroissant, lien et image 120 px', function () {
-    $a = withThumb(makeProjet(['projet_titre' => 'ALPHA', 'projet_lieu' => 'SETE']));
-    $b = withThumb(makeProjet(['projet_titre' => 'BETA', 'projet_lieu' => 'NIMES']));
-    $archived = withThumb(makeProjet(['projet_titre' => 'ARCHIVE', 'archive' => 1]));
+    $a = withThumb(makeProgram(['projet_titre' => 'ALPHA', 'projet_lieu' => 'SETE']));
+    $b = withThumb(makeProgram(['projet_titre' => 'BETA', 'projet_lieu' => 'NIMES']));
+    $archived = withThumb(makeProgram(['projet_titre' => 'ARCHIVE', 'archive' => 1]));
 
     $text = pageText($this->actingAs(makeAdmin())->get('/')->assertOk());
 
-    expect($text)->toMatch(programmeItem($a))->toMatch(programmeItem($b))
+    expect($text)->toMatch(programItem($a))->toMatch(programItem($b))
         ->not->toContain("programme/show/$archived->projet_titre_key")
         ->and(substr_count($text, 'class="item_programme"'))->toBe(2);
     expectInOrder($text, ['BETA<span>', 'ALPHA<span>']);
 });
 
 it('C5 accueil prescripteur : une vignette par ligne acces, projet_id décroissant, archivés compris comme l\'ancien code', function () {
-    $presc = makeCommercial();
-    $a = withThumb(makeProjet(['projet_titre' => 'ALPHA']));
-    $b = withThumb(makeProjet(['projet_titre' => 'BETA', 'archive' => 1]));
-    $other = withThumb(makeProjet(['projet_titre' => 'GAMMA']));
-    DB::table('acces')->insert([['iduser' => $presc->id, 'idprojet' => $a->projet_id], ['iduser' => $presc->id, 'idprojet' => $b->projet_id]]);
+    $prescriber = makeCommercial();
+    $a = withThumb(makeProgram(['projet_titre' => 'ALPHA']));
+    $b = withThumb(makeProgram(['projet_titre' => 'BETA', 'archive' => 1]));
+    $other = withThumb(makeProgram(['projet_titre' => 'GAMMA']));
+    DB::table('acces')->insert([['iduser' => $prescriber->id, 'idprojet' => $a->projet_id], ['iduser' => $prescriber->id, 'idprojet' => $b->projet_id]]);
 
-    $text = pageText($this->actingAs($presc)->get('/')->assertOk());
+    $text = pageText($this->actingAs($prescriber)->get('/')->assertOk());
 
-    expect($text)->toMatch(programmeItem($a))->toMatch(programmeItem($b))
+    expect($text)->toMatch(programItem($a))->toMatch(programItem($b))
         ->not->toContain("programme/show/$other->projet_titre_key")
         ->and(substr_count($text, 'class="item_programme"'))->toBe(2);
     expectInOrder($text, ['BETA<span>', 'ALPHA<span>']);
@@ -78,8 +78,8 @@ it('C5 accueil prescripteur : une vignette par ligne acces, projet_id décroissa
 it('C6 les 7 compteurs du tableau de bord comptent les lignes des listes (globaux admin, filtrés prescripteur)', function () {
     $w = workflowWorld();
     $other = makeCommercial();
-    $lot = makeLot($w->projet->projet_id, ['statut' => 'act', 'vendeur' => $other->id]);
-    DB::table('d_options')->insert(demandeRow($lot, $other->id) + ['iddlot' => $lot->id]);
+    $lot = makeLot($w->program->projet_id, ['statut' => 'act', 'vendeur' => $other->id]);
+    DB::table('d_options')->insert(requestRow($lot, $other->id) + ['iddlot' => $lot->id]);
     DB::table('ventes')->insert(['iduser' => $other->id, 'idlot' => $lot->id, 'date' => '2026-02-01 10:00:00', 'statut' => 1, 'date_resa' => '2026-01-05 10:00:00']);
 
     $admin = dashboardCounters(pageText($this->actingAs($w->corim)->get('/')->assertOk()));
@@ -93,7 +93,7 @@ it('C6 les 7 compteurs du tableau de bord comptent les lignes des listes (globau
         'DÉNONCIATIONS' => 1,
     ]);
 
-    $mine = dashboardCounters(pageText($this->actingAs($w->presc)->get('/')->assertOk()));
+    $mine = dashboardCounters(pageText($this->actingAs($w->prescriber)->get('/')->assertOk()));
     expect(array_map(fn ($c) => $c[0] ?? null, $mine))->toBe(array_fill_keys(array_keys($mine), 1));
 });
 
@@ -101,7 +101,7 @@ it('C7 compteur à 0 → javascript:void(0), compteur > 0 → lien vers la page 
     $w = workflowWorld();
     $targets = ['LOTS ACTÉ' => 'ventes', "DEMANDES D'OPTIONS" => 'ask_options', 'OPTIONS' => 'options', 'DEMANDES DE RÉSERVATIONS' => 'ask_reservations', 'RÉSERVATIONS' => 'reservations', 'DEMANDES DE DÉNONCIATIONS' => 'ask_denonciations', 'DÉNONCIATIONS' => 'denonciations'];
 
-    $counters = dashboardCounters(pageText($this->actingAs($w->presc)->get('/')));
+    $counters = dashboardCounters(pageText($this->actingAs($w->prescriber)->get('/')));
     foreach ($targets as $label => $target) {
         expect($counters[$label][1])->toMatch('#^(https?://[^/]+)?/'.$target.'$#', $label);
     }
@@ -115,7 +115,7 @@ it('C7 compteur à 0 → javascript:void(0), compteur > 0 → lien vers la page 
 it('C8 demandes > 0 : classe list-group-item-warning et icône glyphicon-exclamation-sign, rien à 0', function () {
     $w = workflowWorld();
 
-    $text = pageText($this->actingAs($w->presc)->get('/'));
+    $text = pageText($this->actingAs($w->prescriber)->get('/'));
     foreach (["DEMANDES D'OPTIONS", 'DEMANDES DE RÉSERVATIONS', 'DEMANDES DE DÉNONCIATIONS'] as $label) {
         expect($text)->toMatch('#class="list-group-item list-group-item-warning">\s*<span class="badge">1</span>\s*<span aria-hidden="true" class="glyphicon glyphicon-exclamation-sign"></span> '.preg_quote($label, '#').'#u', $label);
     }
@@ -132,10 +132,10 @@ it('C9 le lien RAPPORT vers /report n\'est présent que pour l\'admin', function
 });
 
 it('C30 un projet_titre contenant <script> est affiché échappé sur l\'accueil', function () {
-    $projet = withThumb(makeProjet(['projet_titre' => '<script>alert(1)</script>', 'projet_titre_key' => md5('xss')]));
+    $program = withThumb(makeProgram(['projet_titre' => '<script>alert(1)</script>', 'projet_titre_key' => md5('xss')]));
 
     $raw = (string) $this->actingAs(makeAdmin())->get('/')->assertOk()->getContent();
 
     expect($raw)->not->toContain('<script>alert(1)</script>')
-        ->toContain("programme/show/$projet->projet_titre_key");
+        ->toContain("programme/show/$program->projet_titre_key");
 });

@@ -43,9 +43,6 @@
     @case('contact')
     	<link href="/medias/css/contact.css" rel="stylesheet" type="text/css" />
     @break
-    @case('agenda')
-    	<link href="/medias/css/agenda.css" rel="stylesheet" type="text/css" />
-    @break
     @case('programme')
     	<link href="/medias/flexigrid/css/flexigrid.pack.css" rel="stylesheet" type="text/css" />
         <script src="/medias/flexigrid/js/flexigrid.pack.js"></script>
@@ -59,6 +56,8 @@
     <link href="/medias/confirm/jquery.confirm.css" rel="stylesheet" type="text/css" />
     <script src="/medias/confirm/jquery.confirm.js"></script>
     <link href="/medias/css/global.css" rel="stylesheet" type="text/css" />
+    <link href="/medias/css/dark-mode.css" rel="stylesheet" type="text/css" />
+    <script src="/medias/js/dark-mode.js"></script>
 	<script src="/medias/js/jquery.print-preview.js"></script>
     <script src="/medias/js/global.js"></script>
     <script src="/medias/js/csrf.js"></script>

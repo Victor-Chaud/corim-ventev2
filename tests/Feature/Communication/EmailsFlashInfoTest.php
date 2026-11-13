@@ -9,8 +9,8 @@ function flashPayload(array $overrides = []): array
 
 it('C20 /emails liste les docs par time décroissant : date d/m/Y, email, programme par clé (sinon la clé), plan', function () {
     $admin = corimAdmin();
-    $projet = makeProjet(['projet_titre' => 'COCOON TEST']);
-    $key = $projet->projet_titre_key;
+    $program = makeProgram(['projet_titre' => 'COCOON TEST']);
+    $key = $program->projet_titre_key;
     DB::table('docs')->insert([
         ['email' => 'ancien@exemple.test', 'url' => "http://corim-vente.com/medias/programmes/$key/plans/plan-A1.pdf", 'time' => (string) mktime(12, 0, 0, 5, 22, 2015)],
         ['email' => 'recent@exemple.test', 'url' => "https://corim-vente.com/medias/programmes/$key/plans/plan-B31.pdf", 'time' => (string) mktime(12, 0, 0, 5, 8, 2022)],
@@ -55,7 +55,7 @@ it('C21 /flash_info liste les news par date décroissante, vignette, titre lié 
 
 it('C22 flash_info/add enregistre \'\' pour les champs vides et la date courante ; sans vignette → « La vignette est obligatoire »', function () {
     $admin = corimAdmin();
-    makeProjet(['projet_titre' => 'PROGRAMME VIGNETTE']);
+    makeProgram(['projet_titre' => 'PROGRAMME VIGNETTE']);
 
     $form = pageText($this->actingAs($admin)->get('/flash_info/add')->assertOk());
     expect($form)->toContain('<title>Corim promotion - Ajouter un Flash Info pour Corim Promotion</title>')

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Http\Controllers\ProgrammesLots\LotImport;
-use App\Http\Controllers\ProgrammesLots\ProgrammeFiles;
+use App\Http\Controllers\ProgramsLots\LotImport;
+use App\Http\Controllers\ProgramsLots\ProgramFiles;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -15,18 +15,18 @@ class NormalizePlans extends Command
 {
     public function handle(): int
     {
-        $disk = ProgrammeFiles::disk();
+        $disk = ProgramFiles::disk();
         $apply = (bool) $this->option('apply');
         $count = 0;
 
-        foreach (DB::table('projet')->orderBy('projet_id')->get(['projet_id', 'projet_titre_key']) as $projet) {
-            $key = (string) $projet->projet_titre_key;
-            if (! ProgrammeFiles::safeName($key) || ! $disk->directoryExists($key.'/plans')) {
+        foreach (DB::table('projet')->orderBy('projet_id')->get(['projet_id', 'projet_titre_key']) as $program) {
+            $key = (string) $program->projet_titre_key;
+            if (! ProgramFiles::safeName($key) || ! $disk->directoryExists($key.'/plans')) {
                 continue;
             }
-            $lots = DB::table('appartements')->where('lot', (string) $projet->projet_id)->get(['id', 'numero']);
-            $expected = $lots->map(fn ($lot) => ProgrammeFiles::planName((string) $lot->numero))->all();
-            foreach (ProgrammeFiles::files($key, 'plans') as $file) {
+            $lots = DB::table('appartements')->where('lot', (string) $program->projet_id)->get(['id', 'numero']);
+            $expected = $lots->map(fn ($lot) => ProgramFiles::planName((string) $lot->numero))->all();
+            foreach (ProgramFiles::files($key, 'plans') as $file) {
                 if (in_array($file, $expected, true) || strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'pdf') {
                     continue;
                 }
@@ -36,8 +36,8 @@ class NormalizePlans extends Command
 
                     continue;
                 }
-                $target = ProgrammeFiles::planName((string) $lot->numero);
-                if (! ProgrammeFiles::safeName($target) || $disk->fileExists($key.'/plans/'.$target)) {
+                $target = ProgramFiles::planName((string) $lot->numero);
+                if (! ProgramFiles::safeName($target) || $disk->fileExists($key.'/plans/'.$target)) {
                     $this->line("$key/plans/$file : $target existe déjà, ignoré");
 
                     continue;

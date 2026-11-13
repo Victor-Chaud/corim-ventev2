@@ -75,9 +75,9 @@ abstract class LegacyApiController extends Controller
             ->when($max !== null, fn (Builder $q) => $q->where('appartements.prix', '<=', $max));
     }
 
-    protected function typologie(Builder $query, mixed $typologie): Builder
+    protected function typology(Builder $query, mixed $typology): Builder
     {
-        $list = is_array($typologie) ? array_map($this->str(...), $typologie) : [''];
+        $list = is_array($typology) ? array_map($this->str(...), $typology) : [''];
 
         return $query->whereIn('appartements.type', $list);
     }

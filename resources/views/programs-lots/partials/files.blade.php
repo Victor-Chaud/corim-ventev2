@@ -1,0 +1,1 @@
+@foreach ($files as $file)<li class="list-group-item"><input type="checkbox" name="selectfile[]" value="{{ $file['url'] }}" />&nbsp;<a href="{{ $file['url'] }}" target="_blank">{{ $file['name'] }}</a> <a href="#" class="file btn btn-danger btn-xs pull-right" rel="{{ $file['url'] }}">SUPPRIMER</a></li>@endforeach

@@ -112,6 +112,8 @@ Liste établie le 29 octobre (`suivi.md`, section « Fonctionnalités inactives 
 | Messagerie entre personnes | 2021 | garder : elle porte les notifications automatiques des demandes ; retirer seulement le bouton « nouveau message » si la cliente le souhaite |
 | Demandes de documentation par l'API (`firstsearch?action=email`) | 2022 | garder : l'API publique est figée par contrat ; à revoir après la mise en production, d'après les journaux d'accès |
 
+**Statut (12 novembre 2026) : fait pour les fiches clients, l'agenda, l'emailing et le destinataire « Client » de `/message/envoyer`** (plus aucune file d'attente, donc pas de worker en prod ; réimplantable depuis le premier commit du dépôt `corim-ventev2`, `5339fd6`) (pages, routes, menus, JS ; test `tests/Feature/Evolutions/RemovedFeaturesTest.php`). Non retirés : flash info, `/emails` (demandes de documentation) et question secrète. La file d'envoi reste : `/message/envoyer` l'utilise pour les mails aux clients.
+
 Les données ne sont pas effacées : les tables restent dans la base (ou dans un export archivé) en cas de besoin. Les tests Pest des fonctions retirées sont remplacés par un test qui vérifie que leurs anciennes adresses renvoient 404.
 
 ## Lot 6. Suivi des performances sur téléphone
@@ -151,8 +153,8 @@ Même méthode que la refonte. Pour chaque lot :
 
 Décisions de l'utilisateur pour l'implémentation dans `NEW/` :
 
-- **Lot 5 (retrait des fonctions inutilisées) : reporté.** On n'y touche pas pour l'instant.
-- **Signature des mails** : valeur par défaut = la signature actuelle écrite en dur dans `resources/views/workflow/mail/prescripteur.blade.php` (adresse « Le Cristal », téléphones), modifiable ensuite par l'admin.
+- **Lot 5 (retrait des fonctions inutilisées) : reporté**, puis fait le 12 novembre 2026 pour les fiches clients, l'agenda et l'emailing (voir lot 5).
+- **Signature des mails** : valeur par défaut = la signature actuelle écrite en dur dans `resources/views/workflow/mail/prescriber.blade.php` (adresse « Le Cristal », téléphones), modifiable ensuite par l'admin.
 - **Suivi des refus** : message libre seulement, pas de liste de motifs. Le prescripteur voit ses propres refus, l'admin voit tout.
 - **Lot 6** : traité comme la rapidité du site sur téléphone.
 - **Lot 7** : description des programmes, messages automatiques et signature, suivi des refus, tels que décrits dans `ameliorations.md` (sections 2, 3 et 4) avec les décisions ci-dessus.

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Communication;
 
 use App\Http\Controllers\Controller;
-use App\Mail\Communication\HtmlMail;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -30,11 +29,11 @@ class MessageController extends Controller
         return htmlspecialchars($value, ENT_QUOTES);
     }
 
-    public function repondre(Request $request, string $cle): View
+    public function reply(Request $request, string $key): View
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
-        $original = MessagerieController::readable($user, $cle);
+        $original = MessagingController::readable($user, $key);
         abort_if($original === null, 404);
 
         $errors = [];
@@ -43,7 +42,7 @@ class MessageController extends Controller
         if ($request->isMethod('post')) {
             $errors = self::required($request, ['objet', 'message', 'destinataire']);
             if ($errors === []) {
-                MessagerieController::send($user->id, (int) $original->idemetteur, (string) $original->sujet, self::normalize((string) $request->input('message')), (int) $original->id);
+                MessagingController::send($user->id, (int) $original->idemetteur, (string) $original->sujet, self::normalize((string) $request->input('message')), (int) $original->id);
                 $valid = 'Votre message à bien été envoyé';
             } else {
                 $callback = $request->post();
@@ -52,7 +51,7 @@ class MessageController extends Controller
 
         return view('communication.message', [
             'title' => 'Corim Promotion - Répondre à un message',
-            'erreurs' => $errors,
+            'formErrors' => $errors,
             'valid' => $valid,
             'callback' => $callback,
             'message' => $original,
@@ -60,19 +59,18 @@ class MessageController extends Controller
         ]);
     }
 
-    public function envoyer(Request $request): View
+    public function send(Request $request): View
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
-        $users = self::prescripteurs()->get();
-        $clients = DB::table('clients')->select('nom', 'email')->orderBy('nom')->get();
+        $users = self::prescribers()->get();
 
         $errors = [];
         $valid = null;
         if ($request->isMethod('post')) {
             $errors = self::required($request, ['objet', 'message']);
             $method = (string) $request->input('method', '');
-            $sujet = (string) $request->input('objet', '');
+            $subject = (string) $request->input('objet', '');
             $message = (string) $request->input('message', '');
             if ($errors === [] && $method === '') {
                 $errors[] = 'Veuillez choisir un destinataire';
@@ -83,17 +81,8 @@ class MessageController extends Controller
                 } else {
                     $ids = $select === 'all' ? $users->pluck('id')->all() : [(int) $select];
                     foreach ($ids as $id) {
-                        MessagerieController::send($user->id, (int) $id, self::normalize($sujet), self::normalize($message));
+                        MessagingController::send($user->id, (int) $id, self::normalize($subject), self::normalize($message));
                     }
-                    $valid = 'Votre message à bien été envoyé';
-                }
-            } elseif ($errors === [] && $method === 'client') {
-                $select = (string) $request->input('client_select', '');
-                if ($select === '0') {
-                    $errors[] = 'Veuillez choisir un client';
-                } else {
-                    $emails = $select === 'all' ? $clients->pluck('email')->all() : [$select];
-                    HtmlMail::queueTo($emails, $sujet, $message);
                     $valid = 'Votre message à bien été envoyé';
                 }
             } elseif ($errors === [] && $method === 'programme') {
@@ -101,9 +90,9 @@ class MessageController extends Controller
                 if ($select === '0') {
                     $errors[] = 'Veuillez choisir un programme';
                 } else {
-                    $ids = self::prescripteurs()->whereIn('user.id', DB::table('acces')->select('iduser')->where('idprojet', (int) $select))->pluck('user.id');
+                    $ids = self::prescribers()->whereIn('user.id', DB::table('acces')->select('iduser')->where('idprojet', (int) $select))->pluck('user.id');
                     foreach ($ids as $id) {
-                        MessagerieController::send($user->id, (int) $id, self::normalize($sujet), self::normalize($message));
+                        MessagingController::send($user->id, (int) $id, self::normalize($subject), self::normalize($message));
                     }
                     $valid = 'Votre message à bien été envoyé';
                 }
@@ -112,23 +101,22 @@ class MessageController extends Controller
 
         return view('communication.message', [
             'title' => 'Corim Promotion - Envoyer un nouveau message',
-            'erreurs' => $errors,
+            'formErrors' => $errors,
             'valid' => $valid,
             'callback' => $errors === [] ? [] : $request->post(),
             'message' => null,
             'users' => $users,
-            'clients' => $clients,
-            'programmes' => self::programmes(),
+            'programs' => self::programs(),
         ]);
     }
 
-    public static function prescripteurs(): Builder
+    public static function prescribers(): Builder
     {
         return DB::table('user')->join('privileges', 'user.id', '=', 'privileges.iduser')
             ->select('user.*', 'privileges.acces')->where('privileges.acces', 0)->orderBy('name');
     }
 
-    public static function programmes(): Collection
+    public static function programs(): Collection
     {
         return DB::table('projet')->where('archive', 0)->orderByDesc('projet_id')->get();
     }

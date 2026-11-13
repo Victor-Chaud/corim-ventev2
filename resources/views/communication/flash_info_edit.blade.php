@@ -52,8 +52,8 @@
           </div>
           <div class="media-body">
             <select name="thumb" id="thumb" class="form-control">
-					@foreach ($programmes as $programme)
-                        <option value="{{ $programme->projet_id }}" {!! (string) $info->thumb === (string) $programme->projet_id ? 'selected="selected"' : '' !!}>{{ $d($programme->projet_titre) }}</option>
+					@foreach ($programs as $program)
+                        <option value="{{ $program->projet_id }}" {!! (string) $info->thumb === (string) $program->projet_id ? 'selected="selected"' : '' !!}>{{ $d($program->projet_titre) }}</option>
                     @endforeach
                 <option value="0" {!! (string) $info->thumb === '0' ? 'selected="selected"' : '' !!}>AUTRE</option>
             </select>

@@ -2,7 +2,7 @@
 
 namespace App\Mail\Workflow;
 
-use App\Http\Controllers\Evolutions\MessagesAutoController;
+use App\Http\Controllers\Evolutions\AutoMessagesController;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -10,26 +10,26 @@ use Illuminate\Support\HtmlString;
 
 class WorkflowMail extends Mailable
 {
-    public function __construct(public string $sujet, public string $corps) {}
+    public function __construct(public string $mailSubject, public string $body) {}
 
-    public static function corim(string $sujet, string $phrase): self
+    public static function corim(string $subject, string $phrase): self
     {
-        return new self($sujet, view('workflow.mail.corim', [
+        return new self($subject, view('workflow.mail.corim', [
             'base' => self::base(),
             'phrase' => new HtmlString($phrase),
         ])->render());
     }
 
-    public static function prescripteur(string $sujet, string $sms, string $projet, string $label, string $valeur): self
+    public static function prescriber(string $subject, string $sms, string $program, string $label, string $value): self
     {
-        return new self($sujet, view('workflow.mail.prescripteur', [
+        return new self($subject, view('workflow.mail.prescriber', [
             'base' => self::base(),
-            'phrase' => new HtmlString($sujet.'.'),
-            'sms' => MessagesAutoController::html($sms),
-            'signature' => MessagesAutoController::html(MessagesAutoController::texte('signature')),
-            'projet' => html_entity_decode($projet, ENT_QUOTES),
+            'phrase' => new HtmlString($subject.'.'),
+            'sms' => AutoMessagesController::html($sms),
+            'signature' => AutoMessagesController::html(AutoMessagesController::text('signature')),
+            'program' => html_entity_decode($program, ENT_QUOTES),
             'label' => $label,
-            'valeur' => html_entity_decode($valeur, ENT_QUOTES),
+            'value' => html_entity_decode($value, ENT_QUOTES),
         ])->render());
     }
 
@@ -40,11 +40,11 @@ class WorkflowMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: '[Corim promotion] - '.$this->sujet);
+        return new Envelope(subject: '[Corim promotion] - '.$this->mailSubject);
     }
 
     public function content(): Content
     {
-        return new Content(text: 'workflow.mail.texte', with: ['texte' => strip_tags($this->corps)], htmlString: $this->corps);
+        return new Content(text: 'workflow.mail.text', with: ['text' => strip_tags($this->body)], htmlString: $this->body);
     }
 }

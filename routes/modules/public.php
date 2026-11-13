@@ -10,5 +10,5 @@ Route::middleware('auth')->group(function () {
     Route::match(['get', 'post'], 'welcome/{index?}', [PagesController::class, 'welcome'])->where('index', 'index');
     Route::match(['get', 'post'], 'cgu/{index?}', [PagesController::class, 'cgu'])->where('index', 'index');
     Route::match(['get', 'post'], 'mentions_legales/{index?}', [PagesController::class, 'mentions'])->where('index', 'index');
-    Route::match(['get', 'post'], 'rechercher/{action?}', [PagesController::class, 'rechercher'])->where('action', 'index|par_residence|par_lot');
+    Route::match(['get', 'post'], 'rechercher/{action?}', [PagesController::class, 'search'])->where('action', 'index|par_residence|par_lot');
 });

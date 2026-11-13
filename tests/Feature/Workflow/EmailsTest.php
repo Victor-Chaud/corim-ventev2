@@ -25,7 +25,7 @@ dataset('emails', [
     'E14' => ['AnnulerLaVente', 'f_annuler_la_vente_sms', 'prescripteur@exemple.test', 'La vente a été annulée', 'La vente a été annulée.', 'act'],
 ]);
 
-it('C31 chaque e-mail E1-E14 a l\'expéditeur, le sujet, le corps HTML et la partie texte du legacy', function (string $action, ?string $smsKey, string $to, string $subject, string $phrase, ?string $ligne) {
+it('C31 chaque e-mail E1-E14 a l\'expéditeur, le sujet, le corps HTML et la partie texte du legacy', function (string $action, ?string $smsKey, string $to, string $subject, string $phrase, ?string $row) {
     $w = workflowWorld();
     $data = workflowActions($w)[$action];
     if ($smsKey) {
@@ -38,7 +38,7 @@ it('C31 chaque e-mail E1-E14 a l\'expéditeur, le sujet, le corps HTML et la par
     expect($mails)->toHaveCount(1);
     $body = $smsKey === null
         ? mailNotification($phrase)
-        : mailPrescripteur($phrase, 'Merci pour votre confiance', 'LES JARDINS TEST', str_starts_with((string) $ligne, 'Client') ? $ligne : 'Référence lot : '.$w->lots[$ligne]->numero);
+        : mailPrescriber($phrase, 'Merci pour votre confiance', 'LES JARDINS TEST', str_starts_with((string) $row, 'Client') ? $row : 'Référence lot : '.$w->lots[$row]->numero);
     expectLegacyMail($mails[0], $to, '[Corim promotion] - '.$subject, $body);
 })->with('emails');
 
@@ -61,16 +61,16 @@ it('C32 une erreur d\'envoi d\'e-mail ne laisse aucune écriture partielle', fun
 
     $this->actingAs($w->corim)->post('/index.php/json/AddOption/', $actions['AddOption']);
     $lot = $w->lots['libre']->id;
-    $demande = DB::table('d_options')->where('iddlot', $lot)->count();
-    expect([$demande, lotStatut($lot)])->toBeIn([[0, ''], [1, 'opt']]);
+    $pendingRequest = DB::table('d_options')->where('iddlot', $lot)->count();
+    expect([$pendingRequest, lotStatus($lot)])->toBeIn([[0, ''], [1, 'opt']]);
 
     $this->actingAs($w->corim)->post('/index.php/json/AcceptAddOption/', $actions['AcceptAddOption']);
     $askopt = $w->lots['askopt']->id;
     expect([DB::table('d_options')->where('iddlot', $askopt)->count(), DB::table('options')->where('idlot', $askopt)->count()])->toBeIn([[1, 0], [0, 1]]);
 
     $this->actingAs($w->corim)->post('/index.php/json/PasserEnActer/', $actions['PasserEnActer']);
-    $res = $w->lots['res']->id;
-    $state = [lotStatut($res), DB::table('reservations')->where('idlot', $res)->where('statut', 1)->count(), DB::table('ventes')->where('idlot', $res)->count()];
+    $reservedLot = $w->lots['res']->id;
+    $state = [lotStatus($reservedLot), DB::table('reservations')->where('idlot', $reservedLot)->where('statut', 1)->count(), DB::table('ventes')->where('idlot', $reservedLot)->count()];
     expect($state)->toBeIn([['res', 1, 0], ['act', 0, 1]]);
 
     $messages = DB::table('mp')->count();

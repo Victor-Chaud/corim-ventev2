@@ -41,8 +41,8 @@ it('C4 rejoue nextjscorim_city octet pour octet', function () {
 
 it('C5 rejoue nextjscorim_budget avec comparaison de chaînes sur le prix', function () {
     replayStrictModuloTies('nextjscorim_budget', 46);
-    $prix = array_column(json_decode(test()->get('/index.php/'.legacyFixture('nextjscorim_budget')['path'])->getContent(), true), 'prix');
-    expect($prix)->toContain('203 900', '219900')->not->toContain('199 900');
+    $price = array_column(json_decode(test()->get('/index.php/'.legacyFixture('nextjscorim_budget')['path'])->getContent(), true), 'prix');
+    expect($price)->toContain('203 900', '219900')->not->toContain('199 900');
 });
 
 it('C6 rejoue nextjscorim_combo (strict modulo ex aequo, 24 objets)', function () {

@@ -19,7 +19,8 @@
             	<input size="10" type="text" class="datepicker" id="datepicker_{{ $option->idlot }}_option" value="{{ $option->date }}" />
                 <input type="hidden" type="text" class="datepickeralt" value="" />
             </td>
-            @else<td align="center">{{ $option->date }}</td>@endif<td align="center">{{ $option->projet_titre }}</td><td align="center">{{ $option->projet_lieu }}</td><td align="center">{{ $option->numero }}</td><td align="center">{{ $option->nom }}</td><td align="center">{{ $option->adresse }}</td><td align="center">{{ $option->name }}</td><td align="center">@if ($option->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $option->idlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="passer_en_resa btn btn-primary btn-xs">R&Eacute;SERVATION</a><a rel="{{ $option->idlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="annuler_option btn btn-warning btn-xs">ANNULER</a></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 10 : 9 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($option->message) }}</td></tr>@endforeach</tbody></table>@endif
+            @else<td align="center">{{ $option->date }}</td>@endif<td align="center">{{ $option->projet_titre }}</td><td align="center">{{ $option->projet_lieu }}</td><td align="center">{{ $option->numero }}</td><td align="center">{{ $option->nom }}</td><td align="center">{{ $option->adresse }}</td><td align="center">{{ $option->name }}</td><td align="center">@if ($option->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $option->idlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="passer_en_resa btn btn-primary btn-xs">R&Eacute;SERVATION</a><a rel="{{ $option->idlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="annuler_option btn btn-warning btn-xs">ANNULER</a></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 10 : 9 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($option->message) }}</td></tr>@endforeach</tbody></table>
+{{ $rows->links() }}@endif
 <div style="display:none">
 	<div id="passer_en_resa_box">
     	<h3>Passer l'option en réservation</h3>
@@ -42,7 +43,7 @@
         <form name="f_annuler_option" id="f_annuler_option" method="post" action="#">
             <div class="form-group">
                 <label for="f_annuler_option_sms">Laisser un message au prescripteur</label>
-                <textarea name="f_annuler_option_sms" class="form-control" rows="10">{{ \App\Http\Controllers\Evolutions\MessagesAutoController::texte('option_annulee') }}</textarea>
+                <textarea name="f_annuler_option_sms" class="form-control" rows="10">{{ \App\Http\Controllers\Evolutions\AutoMessagesController::text('option_annulee') }}</textarea>
             </div>
             <div class="text-right">
                 <input type="submit" id="submit_f_annuler_option" value="Valider" class="btn btn-primary" />

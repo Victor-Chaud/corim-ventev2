@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Envelope;
 
 class ResetLinkMail extends Mailable
 {
-    public function __construct(public string $pseudo, public string $lien) {}
+    public function __construct(public string $pseudo, public string $link) {}
 
     public function envelope(): Envelope
     {
@@ -18,12 +18,12 @@ class ResetLinkMail extends Mailable
 
     public function content(): Content
     {
-        $html = view('auth-users-privileges.mail.reinitialisation', [
+        $html = view('auth-users-privileges.mail.reset-link', [
             'base' => rtrim((string) config('app.url'), '/').'/',
             'pseudo' => $this->pseudo,
-            'lien' => $this->lien,
+            'link' => $this->link,
         ])->render();
 
-        return new Content(text: 'auth-users-privileges.mail.texte', with: ['texte' => strip_tags($html)."\n\n".$this->lien], htmlString: $html);
+        return new Content(text: 'auth-users-privileges.mail.text', with: ['text' => strip_tags($html)."\n\n".$this->link], htmlString: $html);
     }
 }

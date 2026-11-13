@@ -9,7 +9,6 @@ return [
         'programmes' => ['driver' => 'local', 'root' => storage_path('app/medias/programmes'), 'throw' => false],
         'upload' => ['driver' => 'local', 'root' => storage_path('app/medias/upload'), 'throw' => false],
         'news' => ['driver' => 'local', 'root' => storage_path('app/medias/news'), 'throw' => false],
-        'clients' => ['driver' => 'local', 'root' => storage_path('app/medias/clients'), 'throw' => false],
         'csv' => ['driver' => 'local', 'root' => storage_path('app/medias/csv'), 'throw' => false],
         'export' => ['driver' => 'local', 'root' => storage_path('app/medias/export'), 'throw' => false],
 

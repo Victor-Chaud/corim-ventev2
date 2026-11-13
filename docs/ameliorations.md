@@ -109,7 +109,7 @@ Décision (30 octobre 2026) : **simple mise en page** (points 1 et 2). Pas d'éd
 
 - Quand l'admin valide ou refuse une demande, une fenêtre propose « Laisser un message au prescripteur » : une zone de texte **vide à chaque fois**. Ce texte part dans le mail au prescripteur et est collé à la suite du message de la demande, séparé par un trait.
 - En pratique, ce message est le plus souvent vide ou très court (« T4 », « pour Eva », « VINCI » sur les dernières réservations).
-- Le mail au prescripteur (`resources/views/workflow/mail/prescripteur.blade.php`, copie de l'ancien) :
+- Le mail au prescripteur (`resources/views/workflow/mail/prescriber.blade.php`, copie de l'ancien) :
   - n'a **aucune police ni taille définie** : chaque logiciel de mail applique sa propre police par défaut, d'où des tailles différentes selon les messageries ;
   - **perd les retours à la ligne** du message saisi par l'admin ;
   - a une **signature écrite en dur** dans le code : adresse « Immeuble Le Cristal, 1475 av. Albert Einstein, 34000 Montpellier », téléphone fixe et portable, sans nom ni fonction. Si l'admin ajoute sa signature à la main, elle se retrouve en double.

@@ -57,15 +57,15 @@ class FirstsearchController extends LegacyApiController
         return $this->rows($query->orderBy('appartements.prix'));
     }
 
-    private function programs(Builder $programmes, callable $lots): mixed
+    private function programs(Builder $programs, callable $lots): mixed
     {
         $data = [];
         $count = 0;
-        foreach ($programmes->get() as $programme) {
+        foreach ($programs->get() as $program) {
             $data['errors'] = 1;
-            $result = $lots($programme);
+            $result = $lots($program);
             if ($result !== []) {
-                $data['program'][$count] = ['titre' => (string) $programme->projet_titre, 'lieu' => (string) $programme->projet_lieu, 'result' => $result];
+                $data['program'][$count] = ['titre' => (string) $program->projet_titre, 'lieu' => (string) $program->projet_lieu, 'result' => $result];
             }
             $count++;
         }
@@ -73,34 +73,34 @@ class FirstsearchController extends LegacyApiController
         return $data ?: ['errors' => self::NO_RESULT_HTTP];
     }
 
-    private function programmesOf(Builder $lots): Builder
+    private function programsOf(Builder $lots): Builder
     {
         return $lots->select('projet.projet_titre', 'projet.projet_id', 'projet.projet_lieu')
             ->groupBy('projet.projet_titre', 'projet.projet_id', 'projet.projet_lieu')
             ->orderByRaw('MIN(appartements.prix)');
     }
 
-    private function light(mixed $programme): mixed
+    private function light(mixed $program): mixed
     {
         $lots = $this->lots()->where('appartements.statut', '')
-            ->when((int) $programme !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $programme));
+            ->when((int) $program !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $program));
 
-        return $this->programs($this->programmesOf($lots), fn (object $p) => $this->rows(
+        return $this->programs($this->programsOf($lots), fn (object $p) => $this->rows(
             $this->lots()->where('appartements.lot', (int) $p->projet_id)->where('appartements.statut', '')
                 ->orderBy('projet.projet_titre')->orderBy('appartements.prix')
         ));
     }
 
-    private function withref(mixed $programme, mixed $ref): mixed
+    private function withref(mixed $program, mixed $ref): mixed
     {
         if ($ref === null) {
             return ['errors' => self::NO_RESULT_HTTP];
         }
 
         $lots = $this->lots()->where('appartements.numero', $this->str($ref))
-            ->when((int) $programme !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $programme));
+            ->when((int) $program !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $program));
 
-        return $this->programs($this->programmesOf($lots), fn (object $p) => $this->rows(
+        return $this->programs($this->programsOf($lots), fn (object $p) => $this->rows(
             $this->lots()->where('appartements.lot', (int) $p->projet_id)->where('appartements.numero', $this->str($ref))
                 ->orderBy('projet.projet_titre')->orderBy('appartements.prix')
         ));
@@ -109,11 +109,11 @@ class FirstsearchController extends LegacyApiController
     private function app(Request $request): mixed
     {
         $get = $request->query();
-        $projet = empty($get['projet']) ? '0' : $get['projet'];
-        $typologie = empty($get['typologie']) ? '0' : $get['typologie'];
+        $program = empty($get['projet']) ? '0' : $get['projet'];
+        $typology = empty($get['typologie']) ? '0' : $get['typologie'];
 
-        $query = $this->lots(true)->where('appartements.statut', '')->where('appartements.lot', $this->str($projet))
-            ->when($typologie != '0', fn (Builder $q) => $this->typologie($q, $typologie));
+        $query = $this->lots(true)->where('appartements.statut', '')->where('appartements.lot', $this->str($program))
+            ->when($typology != '0', fn (Builder $q) => $this->typology($q, $typology));
         $rows = $this->rows($this->budget($query, $this->normalize($get['budget'] ?? null))
             ->orderBy('projet.projet_titre')->orderBy('appartements.prix'));
 
@@ -123,33 +123,33 @@ class FirstsearchController extends LegacyApiController
     private function search(Request $request): mixed
     {
         $get = $request->query();
-        $geographique = (int) $this->normalize($get['geographique'] ?? null);
-        $livraison = $this->normalize($get['livraison'] ?? null);
-        $typologie = empty($get['typologie']) ? 0 : $get['typologie'];
+        $geographic = (int) $this->normalize($get['geographique'] ?? null);
+        $delivery = $this->normalize($get['livraison'] ?? null);
+        $typology = empty($get['typologie']) ? 0 : $get['typologie'];
         $budget = $this->normalize($get['budget'] ?? null);
         $type = $this->normalize($get['type'] ?? null);
-        $programme = $this->normalize($get['programmes'] ?? null);
+        $program = $this->normalize($get['programmes'] ?? null);
 
         $common = fn (Builder $q) => $this->budget($q
-            ->when($geographique === 1, fn (Builder $q) => $q->where('appartements.ville', 'MONTPELLIER'))
-            ->when($geographique === 3, fn (Builder $q) => $q->where('appartements.ville', '!=', 'MONTPELLIER'))
-            ->when((int) $typologie !== 0, fn (Builder $q) => $this->typologie($q, $typologie)), $budget);
-        $dates = fn (Builder $q) => $q->whereIn('appartements.date', array_map(fn ($t) => $t.'T'.$this->str($livraison), [1, 2, 3, 4]));
-        $categorie = fn (Builder $q) => $q->where('appartements.categorie', 'like', '%'.$this->str($type).'%');
+            ->when($geographic === 1, fn (Builder $q) => $q->where('appartements.ville', 'MONTPELLIER'))
+            ->when($geographic === 3, fn (Builder $q) => $q->where('appartements.ville', '!=', 'MONTPELLIER'))
+            ->when((int) $typology !== 0, fn (Builder $q) => $this->typology($q, $typology)), $budget);
+        $dates = fn (Builder $q) => $q->whereIn('appartements.date', array_map(fn ($t) => $t.'T'.$this->str($delivery), [1, 2, 3, 4]));
+        $category = fn (Builder $q) => $q->where('appartements.categorie', 'like', '%'.$this->str($type).'%');
 
-        $programmes = DB::table('projet')->join('appartements', 'appartements.lot', '=', 'projet.projet_id')
+        $programs = DB::table('projet')->join('appartements', 'appartements.lot', '=', 'projet.projet_id')
             ->distinct()->select('projet.projet_id', 'projet.projet_titre', 'projet.projet_lieu')
             ->where('appartements.statut', '')
-            ->when((int) $type !== 0, $categorie)
-            ->when((int) $livraison !== 0, $dates)
-            ->when((int) $programme !== 0, fn (Builder $q) => $q->where('projet.projet_id', $this->str($programme)))
+            ->when((int) $type !== 0, $category)
+            ->when((int) $delivery !== 0, $dates)
+            ->when((int) $program !== 0, fn (Builder $q) => $q->where('projet.projet_id', $this->str($program)))
             ->orderBy('projet.projet_titre');
-        $common($programmes);
+        $common($programs);
 
-        return $this->programs($programmes, fn (object $p) => $this->rows(
+        return $this->programs($programs, fn (object $p) => $this->rows(
             $common($this->lots()->where('appartements.statut', '')->where('appartements.lot', (int) $p->projet_id))
-                ->when($type != '0', $categorie)
-                ->when($livraison != '0', $dates)
+                ->when($type != '0', $category)
+                ->when($delivery != '0', $dates)
                 ->orderBy('projet.projet_titre')->orderBy('appartements.prix')
         ));
     }

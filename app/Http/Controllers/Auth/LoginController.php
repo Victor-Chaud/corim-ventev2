@@ -16,19 +16,19 @@ class LoginController extends Controller
 
     public function index(Request $request): View|RedirectResponse
     {
-        $view = view('auth-users-privileges.connexion', ['title' => 'Corim Promotion - Connexion à votre espace']);
+        $view = view('auth-users-privileges.login', ['title' => 'Corim Promotion - Connexion à votre espace']);
 
         if (! $request->isMethod('post') || $request->input('action') !== 'connexion') {
             return $view;
         }
 
-        $identifiant = (string) $request->input('identifiant', '');
+        $username = (string) $request->input('identifiant', '');
         $password = (string) $request->input('password', '');
 
         $messages = [
             'identifiant' => match (true) {
-                $identifiant === '' => "L'identifiant ne peut rester vide.",
-                ! preg_match('/^[\pL\pN\pZ\p{Pc}\p{Pd}\p{Po}]++$/u', $identifiant) => "L'identifiant ne doit pas contenir de caractères spéciaux.",
+                $username === '' => "L'identifiant ne peut rester vide.",
+                ! preg_match('/^[\pL\pN\pZ\p{Pc}\p{Pd}\p{Po}]++$/u', $username) => "L'identifiant ne doit pas contenir de caractères spéciaux.",
                 default => '',
             },
             'password' => $password === '' ? 'Le mot de passe ne peut rester vide.' : '',
@@ -38,7 +38,7 @@ class LoginController extends Controller
             return $view->with('messages', $messages);
         }
 
-        $key = 'login:'.mb_strtolower($identifiant).'|'.$request->ip();
+        $key = 'login:'.mb_strtolower($username).'|'.$request->ip();
         $ipKey = 'login-ip:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($key, 5) || RateLimiter::tooManyAttempts($ipKey, 20)) {
@@ -46,7 +46,7 @@ class LoginController extends Controller
         }
 
         $matches = User::query()
-            ->where('pseudo', $identifiant)
+            ->where('pseudo', $username)
             ->where('statut', 1)
             ->whereExists(fn ($q) => $q->from('privileges')->whereColumn('privileges.iduser', 'user.id'))
             ->get()

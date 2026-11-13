@@ -52,10 +52,10 @@ class PasswordController extends Controller
             return response('');
         }
 
-        $reponse = $this->normalize($request->input('your_response'));
-        $users = $reponse === '' ? collect() : DB::table('user')
+        $answer = $this->normalize($request->input('your_response'));
+        $users = $answer === '' ? collect() : DB::table('user')
             ->where('email', $this->normalize($request->input('your_email')))
-            ->where('reponse', $reponse)
+            ->where('reponse', $answer)
             ->pluck('id');
 
         if ($users->count() !== 1) {
@@ -90,13 +90,13 @@ class PasswordController extends Controller
         return LegacyJson::respond(['errors' => 0, 'response' => "Si l'adresse ".$email.' correspond à un compte, un lien pour choisir votre nouveau mot de passe vient de lui être envoyé. Ce lien est valable une heure.']);
     }
 
-    public function reset(Request $request, string $id, string $empreinte): View|Response
+    public function reset(Request $request, string $id, string $fingerprint): View|Response
     {
-        $view = view('auth-users-privileges.reinitialisation', ['title' => 'Corim Promotion - Connexion à votre espace']);
+        $view = view('auth-users-privileges.reset-link', ['title' => 'Corim Promotion - Connexion à votre espace']);
         $user = $request->hasValidRelativeSignature() ? DB::table('user')->where('id', (int) $id)->first() : null;
 
-        if (! $user || ! hash_equals($this->empreinte($user), $empreinte)) {
-            return response($view->with('invalide', true), 403);
+        if (! $user || ! hash_equals($this->fingerprint($user), $fingerprint)) {
+            return response($view->with('invalid', true), 403);
         }
 
         if (! $request->isMethod('post')) {
@@ -117,26 +117,35 @@ class PasswordController extends Controller
 
         DB::table('user')->where('id', $user->id)->update(['password' => Hash::make($password)]);
 
-        return $view->with('termine', true);
+        return $view->with('done', true);
     }
 
-    private function sendLink(object $user): void
+    public function link(object $user): string
     {
-        $lien = rtrim((string) config('app.url'), '/').URL::temporarySignedRoute(
-            'password.reinitialisation',
+        return rtrim((string) config('app.url'), '/').URL::temporarySignedRoute(
+            'password.reset-link',
             now()->addHour(),
-            ['id' => $user->id, 'empreinte' => $this->empreinte($user)],
+            ['id' => $user->id, 'empreinte' => $this->fingerprint($user)],
             false,
         );
-
-        try {
-            Mail::to((string) $user->email)->send(new ResetLinkMail(html_entity_decode((string) $user->pseudo, ENT_QUOTES), $lien));
-        } catch (Throwable $e) {
-            report($e);
-        }
     }
 
-    private function empreinte(object $user): string
+    public function sendLink(object $user): bool
+    {
+        $link = $this->link($user);
+
+        try {
+            Mail::to((string) $user->email)->send(new ResetLinkMail(html_entity_decode((string) $user->pseudo, ENT_QUOTES), $link));
+        } catch (Throwable $e) {
+            report($e);
+
+            return false;
+        }
+
+        return true;
+    }
+
+    private function fingerprint(object $user): string
     {
         return hash_hmac('sha256', $user->id.'|'.$user->password, (string) config('app.key'));
     }

@@ -19,7 +19,7 @@ class SecurityHeaders
         'sha256-loNEcvOiwPZFEqTNJYE+/sdSv0X/6zDcCFyxAG+oGiw=',
     ];
 
-    private const CKEDITOR_PAGES = ['emailing', 'emailing/*', 'flash_info/add', 'flash_info/edit/*'];
+    private const CKEDITOR_PAGES = ['flash_info/add', 'flash_info/edit/*'];
 
     public function handle(Request $request, Closure $next): Response
     {

@@ -1,6 +1,6 @@
 # Vérification des correctifs de phase 3
 
-Vérificateur : agent de vérification, 2026-11-12. Périmètre : correctifs apportés après `revue-securite.md`, `verif-a.md` et `verif-b.md` (sécurité back-end et front). Aucun fichier de l'application ni test existant n'a été modifié. Tests ajoutés : `tests/Feature/Phase3/VerifCorrectifs/VerifCorrectifsTest.php`.
+Vérificateur : agent de vérification, 2026-11-12. Périmètre : correctifs apportés après `revue-securite.md`, `verif-a.md` et `verif-b.md` (sécurité back-end et front). Aucun fichier de l'application ni test existant n'a été modifié. Tests ajoutés : `tests/Feature/Phase3/FixChecks/FixChecksTest.php`.
 
 ## 1. Verdict
 
@@ -84,10 +84,10 @@ Les deux écarts moyens sont simples à corriger :
 ### Autres correctifs
 
 - **`/medias`** : sert doc, docx, xls et xlsx en pièce jointe avec le bon type (S3). La traversée est refusée : `../`, `%2e%2e`, `..%2f` donnent 404 (VC11a, passe).
-- **`/messages_automatiques`** : `withErrors()->withInput()` et `old()` dans la vue (`MessagesAutoController.php:52-54`, `messages_auto.blade.php:10-12,23`). Le test existant passe.
-- **Export CSV des clients** : `PrescripteurApiController::cellule()` (`ClientsController.php:113`, test S4).
+- **`/messages_automatiques`** : `withErrors()->withInput()` et `old()` dans la vue (`AutoMessagesController.php:52-54`, `messages_auto.blade.php:10-12,23`). Le test existant passe.
+- **Export CSV des clients** : `PrescriberApiController::cellule()` (`ClientsController.php:113`, test S4).
 - **`passwords:wrap-legacy`** et `User::checkPassword` (test S5, passe). En base de dev : 241 hash sha256 bruts et 1 bcrypt.
-- **`mp.cle`** : `bin2hex(random_bytes(20))` dans `Workflow/JsonController.php:270`, `ProspectsController.php:106` et `MessagerieController.php:40`.
+- **`mp.cle`** : `bin2hex(random_bytes(20))` dans `Workflow/JsonController.php:270`, `ProspectsController.php:106` et `MessagingController.php:40`.
 - **`public/.htaccess`** : sans commentaire. `.env.example` : `SESSION_SECURE_COOKIE=true` et `MAIL_MAILER=log`.
 
 ### Règle « aucun commentaire »
@@ -145,7 +145,7 @@ Aucun.
 
 ## 5. Tests ajoutés
 
-`tests/Feature/Phase3/VerifCorrectifs/VerifCorrectifsTest.php`, 14 tests : 10 passent, 4 échouent.
+`tests/Feature/Phase3/FixChecks/FixChecksTest.php`, 14 tests : 10 passent, 4 échouent.
 
 - Passent : VC1, VC2, VC3, VC4, VC5, VC7, VC8, VC9, VC11a, VC13.
 - Échouent (écarts ci-dessus) : VC6 (M2), VC10 (m2), VC11b (m1), VC12 (M1).

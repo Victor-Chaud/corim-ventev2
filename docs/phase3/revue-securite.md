@@ -14,28 +14,28 @@ Le bloquant est une XSS réfléchie sur l'API publique `search?action=email`. El
   - Toutes les pages d'administration et les actions `json/*` d'administration sont sous `auth` + `admin` (`EnsureAdmin`).
   - Les routes sans `auth` sont celles attendues : `connexion`, la réinitialisation sous `throttle:20,1`, `app`, l'API publique et `api/v1/*` sous `throttle:600,1`, et `medias/*`.
 - **IDOR**, filtres vérifiés un par un :
-  - `programme/show` : `Access::canSeeProgramme` (`ProgrammeController.php:203`).
-  - `json/JsonDatagrid` : filtre `acces_lot` (`ProgrammesLots/JsonController.php:128`).
+  - `programme/show` : `Access::canSeeProgram` (`ProgramController.php:203`).
+  - `json/JsonDatagrid` : filtre `acces_lot` (`ProgramsLots/JsonController.php:128`).
   - `json/AddOption` et `json/AddReservation` : `canSeeLot` et cohérence lot/projet (`Workflow/JsonController.php:243,251`).
-  - `json/AddProspect` : `canSeeProgramme` (`ProspectsController.php:84`).
+  - `json/AddProspect` : `canSeeProgram` (`ProspectsController.php:84`).
   - `json/SearchProspect` : filtre `iduser` (`:49`).
-  - Messagerie : `readable()` et `idreceveur` (`MessagerieController.php:21-29,98`).
+  - Messagerie : `readable()` et `idreceveur` (`MessagingController.php:21-29,98`).
   - Listes du workflow : filtre `$colonneUser` (`Workflow/PagesController.php:203-207`).
   - Tableau de bord : `$filter` (`Public/PagesController.php:20`).
-  - `api/v1` : données limitées au détenteur de la clé (`PrescripteurApiController.php:96-97,138`).
+  - `api/v1` : données limitées au détenteur de la clé (`PrescriberApiController.php:96-97,138`).
   - Aucun IDOR trouvé.
 - **CSRF**
   - Toutes les actions qui modifient des données exigent POST (`posted()`, `isMethod('post')` ou `post() === []`). Un GET ne fait donc rien. Le jeton CSRF de Laravel est actif sur le groupe web.
   - Seule l'API publique est sortie du CSRF et de la session (`routes/modules/public-api.php:14`).
 - **Injection SQL** : 16 appels `*Raw` / `DB::raw` relus.
   - Ils n'interpolent que des constantes ou des noms de table internes.
-  - `$sortorder` est limité à `asc`/`desc` (`ProgrammesLots/JsonController.php:123,133`).
+  - `$sortorder` est limité à `asc`/`desc` (`ProgramsLots/JsonController.php:123,133`).
   - `whereRaw` est construit avec des colonnes constantes et des bindings (`EmailingController.php:115-121`).
   - Aucune commande shell. Aucun chemin construit depuis une entrée sans `safeName`/`realpath`.
 - **XSS côté serveur** : 50 `{!! !!}` relus. Ils ne sortent que des constantes, `htmlspecialchars`, `SafeHtml::clean`, des entiers ou des attributs fixes. Les messages saisis passent par `SafeHtml` (liste blanche DOM, schémas d'URL filtrés). Aucune sortie Blade dans un contexte JS ou `on*=` hors entiers. `eval()` dans `global.js` ne reçoit que la sortie de `json_encode`.
 - **Uploads**
   - Tous sous `auth` + `admin` avec CSRF.
-  - Nom de fichier filtré (`safeName`), extension et MIME (finfo) en liste blanche (`ProgrammeFiles.php:51-62`).
+  - Nom de fichier filtré (`safeName`), extension et MIME (finfo) en liste blanche (`ProgramFiles.php:51-62`).
   - Fichiers stockés dans `storage/app/medias`, hors de `public/`. Aucun `.php` dans `public/` hors `index.php`.
   - La route `medias` résout le chemin avec `realpath` et vérifie le préfixe, avec une liste blanche d'extensions (`routes/modules/medias.php:7-12`). Pas de traversée possible.
 - **Authentification**
@@ -44,7 +44,7 @@ Le bloquant est une XSS réfléchie sur l'API publique `search?action=email`. El
   - Hash legacy vérifié avec `hash_equals` puis réhaché en bcrypt (`User.php:163-175`). `pwdshow` absent.
 - **En-têtes** : `X-Frame-Options`, `nosniff`, `Referrer-Policy`, HSTS si HTTPS (`SecurityHeaders.php`).
 - **Limites de débit**
-  - `api/v1` : 60 appels par heure et par clé, clés stockées en sha256, révocables (`PrescripteurApiController.php:41-56`).
+  - `api/v1` : 60 appels par heure et par clé, clés stockées en sha256, révocables (`PrescriberApiController.php:41-56`).
   - Le CSV de l'API neutralise les formules (`cellule()`).
 - **Dépendances** : `php8.5 /usr/bin/composer audit` ne signale aucune vulnérabilité.
 - **Configuration** : `config/app.php:9` met `debug` à false par défaut. `.env` est ignoré par git.
@@ -94,7 +94,7 @@ Le bloquant est une XSS réfléchie sur l'API publique `search?action=email`. El
 - **Correction proposée** : migration unique qui remplace chaque hash par `Hash::make(<hash legacy>)`. La vérification devient alors `Hash::check(User::legacyHash($pwd), …)`, puis réhachage normal.
 
 **M5. Documents Office acceptés à l'envoi mais jamais servis**
-- **Où** : `app/Http/Controllers/ProgrammesLots/ProgrammeFiles.php:29` contre `routes/modules/medias.php:12`.
+- **Où** : `app/Http/Controllers/ProgramsLots/ProgramFiles.php:29` contre `routes/modules/medias.php:12`.
 - **Ce qui se passe** : l'envoi de documents accepte doc, docx, xls et xlsx, mais la route `medias` ne sert que pdf, jpg, jpeg, png et gif. Les liens affichés sur la fiche programme renvoient donc une 404. Aucun fichier de ce type n'existe aujourd'hui (341 pdf et 50 jpg dans `documents`).
 - **Correction proposée** : aligner les deux listes. Soit retirer les formats Office à l'envoi, soit les servir en `Content-Disposition: attachment`.
 
@@ -118,16 +118,16 @@ Le bloquant est une XSS réfléchie sur l'API publique `search?action=email`. El
    - Correction proposée : un limiteur dédié, par exemple 5 par minute, pour cette action.
 3. **Injection de formules dans l'export des clients**
    - Où : `ClientsController.php:109-113`.
-   - Constat : l'export CSV ne neutralise pas les formules (`=`, `+`, `-`, `@`), alors que `PrescripteurApiController::cellule()` existe déjà.
+   - Constat : l'export CSV ne neutralise pas les formules (`=`, `+`, `-`, `@`), alors que `PrescriberApiController::cellule()` existe déjà.
    - Correction proposée : réutiliser `cellule()`.
 4. **Lot modifié enregistré sans encodage**
    - Où : `LotsController.php:172-189` (modification) contre `:434-443` (création).
-   - Constat : la modification enregistre les valeurs brutes, alors que la création les encode. C'est le même comportement que le legacy `UpdateAppartement`. Du HTML saisi par un admin atteint alors la réponse `text/html` de `nextjscorim` et le `href` du plan dans `ProgrammesLots/JsonController.php:141-143`, où `numero` n'est pas échappé.
+   - Constat : la modification enregistre les valeurs brutes, alors que la création les encode. C'est le même comportement que le legacy `UpdateAppartement`. Du HTML saisi par un admin atteint alors la réponse `text/html` de `nextjscorim` et le `href` du plan dans `ProgramsLots/JsonController.php:141-143`, où `numero` n'est pas échappé.
    - Correction proposée : encoder comme `insertLot` et passer l'URL du plan dans `e()`.
 5. **Clés de message prévisibles**
    - Où : `Workflow/JsonController.php:270`, `ProspectsController.php:106`.
-   - Constat : la clé `cle` vaut `sha1(sel.time().émetteur)`. Elle est prévisible et identique pour deux messages envoyés dans la même seconde. `MessagerieController::send()` utilise pourtant `random_bytes` (`:40`).
-   - Correction proposée : passer par `MessagerieController::send()`.
+   - Constat : la clé `cle` vaut `sha1(sel.time().émetteur)`. Elle est prévisible et identique pour deux messages envoyés dans la même seconde. `MessagingController::send()` utilise pourtant `random_bytes` (`:40`).
+   - Correction proposée : passer par `MessagingController::send()`.
 6. **Déconnexion par GET**
    - Où : `routes/modules/auth-users-privileges.php:9-10`.
    - Constat : `connexion/deconnection` et `logout` répondent en GET, donc un site tiers peut déconnecter l'utilisateur. Ce sont les URL legacy.
@@ -149,19 +149,19 @@ Le bloquant est une XSS réfléchie sur l'API publique `search?action=email`. El
     - Constat : la route est dans le groupe web, donc chaque PDF ou image demandé par un site partenaire ouvre une session en base. Les documents et visuels des programmes restent publics via `md5(titre)`, une clé devinable, comme dans le legacy.
     - Correction proposée : `withoutMiddleware` session/cookies sur cette route. Envisager `auth` sur `documents`, puisque seuls les plans doivent rester publics.
 11. **Clé API dans l'URL**
-    - Où : `PrescripteurApiController.php:40`.
+    - Où : `PrescriberApiController.php:40`.
     - Constat : la clé est acceptée en `?cle=`, c'est le choix du plan d'action. Elle apparaît donc dans les logs d'accès d'Apache.
     - Correction proposée : masquer le paramètre `cle` dans le format de log du vhost.
 12. **Qualité du code**
     - Code mort : `Access::programmeIds` et `Access::lotIds` (`app/Support/Access.php:20-28`).
     - Deux parseurs CSV quasi identiques : `LotsController::csvRows:316` et `ClientsController::rows:175`.
-    - La recherche de vignette est répétée quatre fois : `PrivilegeController.php:197`, `PromoteursController.php:39`, `Workflow/PagesController.php:166-175`, `ProgrammeFiles::thumb`.
+    - La recherche de vignette est répétée quatre fois : `PrivilegeController.php:197`, `PrescribersController.php:39`, `Workflow/PagesController.php:166-175`, `ProgramFiles::thumb`.
     - Environ 7 helpers `normalize()` privés identiques.
     - `User::acces()` refait une requête à chaque appel (`User.php:143-151`). Elle est appelée plusieurs fois par requête : middleware, composer de vue, contrôleur.
     - `public/.htaccess` contient des commentaires `#`, contraires à la règle « aucun commentaire ».
     - Correction proposée : supprimer le code mort, factoriser ces doublons, mémoriser `acces()` sur l'instance et retirer les commentaires.
 13. **Vignette en majuscules introuvable**
-    - Où : `ProgrammeFiles.php:103,111`, `ProgrammeController.php:133`.
+    - Où : `ProgramFiles.php:103,111`, `ProgramController.php:133`.
     - Constat : `saveThumb` garde l'extension telle qu'envoyée (`thumb.JPG`), mais `modifier` ne cherche que `jpg`, `png` et `gif`. La vignette existante n'est alors pas affichée.
     - Correction proposée : enregistrer l'extension en minuscules.
 

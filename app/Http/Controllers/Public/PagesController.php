@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\ProgrammesLots\ProgrammeFiles;
+use App\Http\Controllers\ProgramsLots\ProgramFiles;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\Request;
@@ -16,10 +16,10 @@ class PagesController extends Controller
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
-        $acces = $user->acces();
-        $filter = fn (Builder $query, string $column) => $query->when($acces === '0', fn (Builder $q) => $q->where($column, $user->id));
+        $access = $user->access();
+        $filter = fn (Builder $query, string $column) => $query->when($access === '0', fn (Builder $q) => $q->where($column, $user->id));
 
-        $programmes = match ($acces) {
+        $programs = match ($access) {
             '1' => DB::table('projet')->where('archive', 0)->orderByDesc('projet_id')->get(),
             '0' => DB::table('acces')->join('projet', 'acces.idprojet', '=', 'projet.projet_id')
                 ->where('acces.iduser', $user->id)
@@ -28,51 +28,51 @@ class PagesController extends Controller
             default => collect(),
         };
 
-        $valides = fn (string $table, string $id) => $filter(DB::table($table)
+        $approved = fn (string $table, string $id) => $filter(DB::table($table)
             ->join('projet', "$table.idprojet", '=', 'projet.projet_id')
             ->join('user', "$table.iduser", '=', 'user.id')
             ->join('appartements', "$table.idlot", '=', 'appartements.id')
             ->where("$table.statut", 1), "$table.iduser")->count("$table.$id");
 
-        $demandes = fn (string $table, string $id, bool $lot = true) => $filter(DB::table($table)
+        $pendingRequests = fn (string $table, string $id, bool $lot = true) => $filter(DB::table($table)
             ->join('projet', "$table.idprojet", '=', 'projet.projet_id')
             ->join('user', "$table.iduser", '=', 'user.id')
             ->when($lot, fn (Builder $q) => $q->join('appartements', "$table.iddlot", '=', 'appartements.id')), "$table.iduser")->count("$table.$id");
 
         $counters = [
             ['ventes', $filter(DB::table('appartements')->join('projet', 'appartements.lot', '=', 'projet.projet_id')->join('ventes', 'appartements.id', '=', 'ventes.idlot')->where('appartements.statut', 'act')->where('ventes.statut', 1), 'appartements.vendeur')->count('appartements.id'), 'LOTS ACT&Eacute;', false],
-            ['ask_options', $demandes('d_options', 'iddoption'), "DEMANDES D'OPTIONS", true],
-            ['options', $valides('options', 'idoption'), 'OPTIONS', false],
-            ['ask_reservations', $demandes('d_reservations', 'iddresa'), 'DEMANDES DE R&Eacute;SERVATIONS', true],
-            ['reservations', $valides('reservations', 'idresa'), 'R&Eacute;SERVATIONS', false],
-            ['ask_denonciations', $demandes('d_prospects', 'idprospect', false), 'DEMANDES DE D&Eacute;NONCIATIONS', true],
+            ['ask_options', $pendingRequests('d_options', 'iddoption'), "DEMANDES D'OPTIONS", true],
+            ['options', $approved('options', 'idoption'), 'OPTIONS', false],
+            ['ask_reservations', $pendingRequests('d_reservations', 'iddresa'), 'DEMANDES DE R&Eacute;SERVATIONS', true],
+            ['reservations', $approved('reservations', 'idresa'), 'R&Eacute;SERVATIONS', false],
+            ['ask_denonciations', $pendingRequests('d_prospects', 'idprospect', false), 'DEMANDES DE D&Eacute;NONCIATIONS', true],
             ['denonciations', $filter(DB::table('prospects')->join('projet', 'prospects.idprojet', '=', 'projet.projet_id')->join('user', 'prospects.iduser', '=', 'user.id'), 'prospects.iduser')->count('prospects.idprospect'), 'D&Eacute;NONCIATIONS', false],
         ];
 
         return view('public.welcome', [
             'title' => 'Corim promotion - Tableau de bord',
-            'programmes' => $programmes->map(function ($programme) {
-                $key = (string) $programme->projet_titre_key;
-                $programme->thumb = ProgrammeFiles::safeName($key) ? ProgrammeFiles::thumb($key) : '';
+            'programs' => $programs->map(function ($program) {
+                $key = (string) $program->projet_titre_key;
+                $program->thumb = ProgramFiles::safeName($key) ? ProgramFiles::thumb($key) : '';
 
-                return $programme;
+                return $program;
             }),
             'counters' => $counters,
-            'admin' => $acces === '1',
+            'admin' => $access === '1',
         ]);
     }
 
     public function cgu(): View
     {
-        return view('public.cgu', ['title' => 'Conditions générales de vente']);
+        return view('public.terms', ['title' => 'Conditions générales de vente']);
     }
 
     public function mentions(): View
     {
-        return view('public.mentions', ['title' => '']);
+        return view('public.legal_notice', ['title' => '']);
     }
 
-    public function rechercher(): never
+    public function search(): never
     {
         abort(404);
     }

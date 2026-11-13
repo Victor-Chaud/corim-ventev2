@@ -20,14 +20,14 @@ class User extends Authenticatable
 
     protected $rememberTokenName = '';
 
-    public function acces(): string
+    public function access(): string
     {
         return (string) DB::table('privileges')->where('iduser', $this->id)->value('acces');
     }
 
     public function isAdmin(): bool
     {
-        return $this->acces() === '1';
+        return $this->access() === '1';
     }
 
     public function isActive(): bool

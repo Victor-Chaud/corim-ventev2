@@ -16,19 +16,19 @@ it('C13 AcceptAddOption déplace la demande dans options, suffixe le message et 
     $w = workflowWorld();
     $lot = $w->lots['askopt'];
 
-    expect(jsonAction($w->corim, 'AcceptAddOption', ['f_confirm_ask_option_lot' => $lot->id, 'f_confirm_ask_option_user' => $w->presc->id, 'f_confirm_ask_option_sms' => 'Option validée'])->getContent())
+    expect(jsonAction($w->corim, 'AcceptAddOption', ['f_confirm_ask_option_lot' => $lot->id, 'f_confirm_ask_option_user' => $w->prescriber->id, 'f_confirm_ask_option_sms' => 'Option validée'])->getContent())
         ->toBe('{"errors":1}');
 
     $option = DB::table('options')->where('idlot', $lot->id)->first();
     expect($option)->not->toBeNull()
         ->and((int) $option->statut)->toBe(1)
-        ->and((int) $option->iduser)->toBe($w->presc->id)
+        ->and((int) $option->iduser)->toBe($w->prescriber->id)
         ->and(decoded($option->nom))->toBe('Mme ACQUEREUR Anne')
         ->and(decoded($option->adresse))->toBe('MONTPELLIER 34000')
         ->and((string) $option->date)->toBe('2026-01-10 10:00:00')
         ->and(decoded($option->message))->toBe('Message du prescripteur'.SEPARATOR.'Option validée')
         ->and(DB::table('d_options')->where('iddlot', $lot->id)->count())->toBe(0)
-        ->and(lotStatut($lot->id))->toBe('opt');
+        ->and(lotStatus($lot->id))->toBe('opt');
     onlyMailTo('prescripteur@exemple.test', "[Corim promotion] - Votre demande d'option a été validée");
 });
 
@@ -36,10 +36,10 @@ it('C14 RejetAddOption supprime la demande, libère le lot, envoie E5 et ne stoc
     $w = workflowWorld();
     $lot = $w->lots['askopt'];
 
-    expect(jsonAction($w->corim, 'RejetAddOption', ['f_refuser_ask_option_lot' => $lot->id, 'f_refuser_ask_option_user' => $w->presc->id, 'f_refuser_ask_option_sms' => 'Refus MOTIF-UNIQUE'])->getContent())
+    expect(jsonAction($w->corim, 'RejetAddOption', ['f_refuser_ask_option_lot' => $lot->id, 'f_refuser_ask_option_user' => $w->prescriber->id, 'f_refuser_ask_option_sms' => 'Refus MOTIF-UNIQUE'])->getContent())
         ->toBe('{"errors":1}')
         ->and(DB::table('d_options')->where('iddlot', $lot->id)->count())->toBe(0)
-        ->and(lotStatut($lot->id))->toBe('');
+        ->and(lotStatus($lot->id))->toBe('');
     foreach (['options' => 'message', 'd_options' => 'message', 'mp' => 'message'] as $table => $column) {
         expect(DB::table($table)->where($column, 'like', '%MOTIF-UNIQUE%')->count())->toBe(0, $table);
     }
@@ -50,39 +50,39 @@ it('C15 AcceptAddResa et RejetAddResa sont les équivalents pour les réservatio
     $w = workflowWorld();
     $lot = $w->lots['askres'];
 
-    expect(jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => '', 'f_confirm_ask_resa_user' => $w->presc->id, 'f_confirm_ask_resa_sms' => 'x'])->getContent())->toBe('{"errors":3}')
+    expect(jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => '', 'f_confirm_ask_resa_user' => $w->prescriber->id, 'f_confirm_ask_resa_sms' => 'x'])->getContent())->toBe('{"errors":3}')
         ->and(jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => $lot->id, 'f_confirm_ask_resa_user' => '', 'f_confirm_ask_resa_sms' => 'x'])->getContent())->toBe('{"errors":3}');
 
-    expect(jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => $lot->id, 'f_confirm_ask_resa_user' => $w->presc->id, 'f_confirm_ask_resa_sms' => 'Résa validée'])->getContent())->toBe('{"errors":1}');
-    $resa = DB::table('reservations')->where('idlot', $lot->id)->first();
-    expect((int) $resa->statut)->toBe(1)
-        ->and((int) $resa->iduser)->toBe($w->presc->id)
-        ->and((string) $resa->date)->toBe('2026-01-10 10:00:00')
-        ->and(decoded($resa->message))->toBe('Message du prescripteur'.SEPARATOR.'Résa validée')
+    expect(jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => $lot->id, 'f_confirm_ask_resa_user' => $w->prescriber->id, 'f_confirm_ask_resa_sms' => 'Résa validée'])->getContent())->toBe('{"errors":1}');
+    $reservation = DB::table('reservations')->where('idlot', $lot->id)->first();
+    expect((int) $reservation->statut)->toBe(1)
+        ->and((int) $reservation->iduser)->toBe($w->prescriber->id)
+        ->and((string) $reservation->date)->toBe('2026-01-10 10:00:00')
+        ->and(decoded($reservation->message))->toBe('Message du prescripteur'.SEPARATOR.'Résa validée')
         ->and(DB::table('d_reservations')->where('iddlot', $lot->id)->count())->toBe(0)
-        ->and(lotStatut($lot->id))->toBe('res');
+        ->and(lotStatus($lot->id))->toBe('res');
     onlyMailTo('prescripteur@exemple.test', '[Corim promotion] - Votre demande de réservation a été validée');
 
-    $other = makeLot($w->projet->projet_id, ['statut' => 'res', 'numero' => 'ASKRES-2']);
-    DB::table('d_reservations')->insert(demandeRow($other, $w->presc->id) + ['iddlot' => $other->id]);
-    expect(jsonAction($w->corim, 'RejetAddResa', ['f_refuser_ask_resa_lot' => $other->id, 'f_refuser_ask_resa_user' => $w->presc->id, 'f_refuser_ask_resa_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
+    $other = makeLot($w->program->projet_id, ['statut' => 'res', 'numero' => 'ASKRES-2']);
+    DB::table('d_reservations')->insert(requestRow($other, $w->prescriber->id) + ['iddlot' => $other->id]);
+    expect(jsonAction($w->corim, 'RejetAddResa', ['f_refuser_ask_resa_lot' => $other->id, 'f_refuser_ask_resa_user' => $w->prescriber->id, 'f_refuser_ask_resa_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
         ->and(DB::table('d_reservations')->where('iddlot', $other->id)->count())->toBe(0)
-        ->and(lotStatut($other->id))->toBe('')
+        ->and(lotStatus($other->id))->toBe('')
         ->and(sentMails()[1]->getSubject())->toBe('[Corim promotion] - Votre demande de réservation a été refusée');
 });
 
 it('C16 AcceptAddDenonciation déplace la dénonciation dans prospects et envoie E8, paramètre vide → 3', function () {
     $w = workflowWorld();
 
-    expect(jsonAction($w->corim, 'AcceptAddDenonciation', ['f_confirm_ask_denonciation_lot' => '', 'f_confirm_ask_denonciation_user' => $w->presc->id, 'f_confirm_ask_denonciation_sms' => 'x'])->getContent())->toBe('{"errors":3}');
+    expect(jsonAction($w->corim, 'AcceptAddDenonciation', ['f_confirm_ask_denonciation_lot' => '', 'f_confirm_ask_denonciation_user' => $w->prescriber->id, 'f_confirm_ask_denonciation_sms' => 'x'])->getContent())->toBe('{"errors":3}');
 
     $before = DB::table('prospects')->count();
-    expect(jsonAction($w->corim, 'AcceptAddDenonciation', ['f_confirm_ask_denonciation_lot' => $w->askProspect, 'f_confirm_ask_denonciation_user' => $w->presc->id, 'f_confirm_ask_denonciation_sms' => 'Dénonciation validée'])->getContent())->toBe('{"errors":1}');
+    expect(jsonAction($w->corim, 'AcceptAddDenonciation', ['f_confirm_ask_denonciation_lot' => $w->askProspect, 'f_confirm_ask_denonciation_user' => $w->prescriber->id, 'f_confirm_ask_denonciation_sms' => 'Dénonciation validée'])->getContent())->toBe('{"errors":1}');
 
     $row = DB::table('prospects')->where('nomprospect', 'M PROSPECT Paul')->first();
     expect(DB::table('prospects')->count())->toBe($before + 1)
         ->and($row)->not->toBeNull()
-        ->and((int) $row->iduser)->toBe($w->presc->id)
+        ->and((int) $row->iduser)->toBe($w->prescriber->id)
         ->and((string) $row->date)->toBe('2026-01-20 10:00:00')
         ->and(decoded($row->smspromoteur))->toBe('Message de dénonciation'.SEPARATOR.'Dénonciation validée')
         ->and(DB::table('d_prospects')->where('idprospect', $w->askProspect)->count())->toBe(0);
@@ -93,7 +93,7 @@ it('C16 AcceptAddDenonciation déplace la dénonciation dans prospects et envoie
 it('C17 RejetAddDenonciation copie dans r_prospects avec le même id, supprime la demande dès le premier appel et envoie E9', function () {
     $w = workflowWorld();
 
-    expect(jsonAction($w->corim, 'RejetAddDenonciation', ['f_refuser_ask_denonciation_lot' => $w->askProspect, 'f_refuser_ask_denonciation_user' => $w->presc->id, 'f_refuser_ask_denonciation_sms' => 'Déjà connu'])->getContent())
+    expect(jsonAction($w->corim, 'RejetAddDenonciation', ['f_refuser_ask_denonciation_lot' => $w->askProspect, 'f_refuser_ask_denonciation_user' => $w->prescriber->id, 'f_refuser_ask_denonciation_sms' => 'Déjà connu'])->getContent())
         ->toBe('{"errors":1}');
 
     $row = DB::table('r_prospects')->where('idprospect', $w->askProspect)->first();
@@ -108,26 +108,26 @@ it('C18 PasserEnResa crée la réservation à la date de l\'option, supprime l\'
     $w = workflowWorld();
     $lot = $w->lots['opt'];
 
-    expect(jsonAction($w->corim, 'PasserEnResa', ['f_passer_en_resa_lot' => $lot->id, 'f_passer_en_resa_user' => $w->presc->id, 'f_passer_en_resa_sms' => 'Go'])->getContent())->toBe('{"errors":1}');
-    $resa = DB::table('reservations')->where('idlot', $lot->id)->first();
-    expect((int) $resa->statut)->toBe(1)
-        ->and((int) $resa->iduser)->toBe($w->presc->id)
-        ->and((string) $resa->date)->toBe('2026-01-11 10:00:00')
+    expect(jsonAction($w->corim, 'PasserEnResa', ['f_passer_en_resa_lot' => $lot->id, 'f_passer_en_resa_user' => $w->prescriber->id, 'f_passer_en_resa_sms' => 'Go'])->getContent())->toBe('{"errors":1}');
+    $reservation = DB::table('reservations')->where('idlot', $lot->id)->first();
+    expect((int) $reservation->statut)->toBe(1)
+        ->and((int) $reservation->iduser)->toBe($w->prescriber->id)
+        ->and((string) $reservation->date)->toBe('2026-01-11 10:00:00')
         ->and(DB::table('options')->where('idlot', $lot->id)->where('statut', 1)->count())->toBe(0)
-        ->and(lotStatut($lot->id))->toBe('res');
+        ->and(lotStatus($lot->id))->toBe('res');
     onlyMailTo('prescripteur@exemple.test', '[Corim promotion] - Votre option a été passée en réservation');
 
-    expect(jsonAction($w->corim, 'PasserEnResa', ['f_passer_en_resa_lot' => $w->lots['libre']->id, 'f_passer_en_resa_user' => $w->presc->id, 'f_passer_en_resa_sms' => 'Go'])->getContent())->toBe('{"errors":0}')
-        ->and(lotStatut($w->lots['libre']->id))->toBe('');
+    expect(jsonAction($w->corim, 'PasserEnResa', ['f_passer_en_resa_lot' => $w->lots['libre']->id, 'f_passer_en_resa_user' => $w->prescriber->id, 'f_passer_en_resa_sms' => 'Go'])->getContent())->toBe('{"errors":0}')
+        ->and(lotStatus($w->lots['libre']->id))->toBe('');
 });
 
 it('C19 AnnulerOption passe l\'option à 0, libère le lot, envoie E11 et la ligne apparaît dans /options/refused', function () {
     $w = workflowWorld();
     $lot = $w->lots['opt'];
 
-    expect(jsonAction($w->corim, 'AnnulerOption', ['f_annuler_option_lot' => $lot->id, 'f_annuler_option_user' => $w->presc->id, 'f_annuler_option_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
+    expect(jsonAction($w->corim, 'AnnulerOption', ['f_annuler_option_lot' => $lot->id, 'f_annuler_option_user' => $w->prescriber->id, 'f_annuler_option_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
         ->and(DB::table('options')->where('idlot', $lot->id)->pluck('statut')->map(fn ($s) => (int) $s)->all())->toBe([0])
-        ->and(lotStatut($lot->id))->toBe('');
+        ->and(lotStatus($lot->id))->toBe('');
     onlyMailTo('prescripteur@exemple.test', '[Corim promotion] - Votre option a été annulée');
 
     $this->actingAs($w->corim)->get('/options/refused')->assertOk()->assertSee('OPT-1');
@@ -138,9 +138,9 @@ it('C20 AnnulerResa passe la réservation à 0, libère le lot, envoie E12 et la
     $w = workflowWorld();
     $lot = $w->lots['res'];
 
-    expect(jsonAction($w->corim, 'AnnulerResa', ['f_annuler_resa_lot' => $lot->id, 'f_annuler_resa_user' => $w->presc->id, 'f_annuler_resa_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
+    expect(jsonAction($w->corim, 'AnnulerResa', ['f_annuler_resa_lot' => $lot->id, 'f_annuler_resa_user' => $w->prescriber->id, 'f_annuler_resa_sms' => 'Non'])->getContent())->toBe('{"errors":1}')
         ->and(DB::table('reservations')->where('idlot', $lot->id)->pluck('statut')->map(fn ($s) => (int) $s)->all())->toBe([0])
-        ->and(lotStatut($lot->id))->toBe('');
+        ->and(lotStatus($lot->id))->toBe('');
     onlyMailTo('prescripteur@exemple.test', '[Corim promotion] - Votre réservation a été annulée');
 
     $this->actingAs($w->corim)->get('/reservations/refused')->assertOk()->assertSee('RES-1');
@@ -155,23 +155,23 @@ it('C21 PasserEnActer type resa acte le lot, crée la vente et envoie E13 ; sans
     expect($response->getContent())->toBe('{"errors":1}');
 
     $acted = DB::table('appartements')->find($lot->id);
-    $vente = DB::table('ventes')->where('idlot', $lot->id)->first();
+    $sale = DB::table('ventes')->where('idlot', $lot->id)->first();
     expect($acted->statut)->toBe('act')
         ->and(decoded($acted->client))->toBe('Mme ACQUEREUR Anne')
-        ->and((int) $acted->vendeur)->toBe($w->presc->id)
+        ->and((int) $acted->vendeur)->toBe($w->prescriber->id)
         ->and(DB::table('reservations')->where('idlot', $lot->id)->where('statut', 1)->count())->toBe(0)
-        ->and((int) $vente->iduser)->toBe($w->presc->id)
-        ->and((int) $vente->statut)->toBe(1)
-        ->and((string) $vente->date_resa)->toBe('2026-01-12 10:00:00')
-        ->and(abs(strtotime((string) $vente->date) - time()))->toBeLessThan(120);
+        ->and((int) $sale->iduser)->toBe($w->prescriber->id)
+        ->and((int) $sale->statut)->toBe(1)
+        ->and((string) $sale->date_resa)->toBe('2026-01-12 10:00:00')
+        ->and(abs(strtotime((string) $sale->date) - time()))->toBeLessThan(120);
     onlyMailTo('prescripteur@exemple.test', '[Corim promotion] - Votre dossier a été acté');
 
-    $libre = $w->lots['libre'];
-    expect(jsonAction($w->corim, 'PasserEnActer', ['passer_en_act_type' => 'resa', 'passer_en_act_lot' => $libre->id, 'f_passer_en_act_sms' => ''])->getContent())->toBe('{"errors":0}');
+    $free = $w->lots['libre'];
+    expect(jsonAction($w->corim, 'PasserEnActer', ['passer_en_act_type' => 'resa', 'passer_en_act_lot' => $free->id, 'f_passer_en_act_sms' => ''])->getContent())->toBe('{"errors":0}');
     $unknown = jsonAction($w->corim, 'PasserEnActer', ['passer_en_act_type' => 'inconnu', 'passer_en_act_lot' => $w->lots['opt']->id, 'f_passer_en_act_sms' => '']);
     expect($unknown->getStatusCode())->toBe(200)
         ->and($unknown->getContent())->toBe('{"errors":0}')
-        ->and(lotStatut($w->lots['opt']->id))->toBe('opt')
+        ->and(lotStatus($w->lots['opt']->id))->toBe('opt')
         ->and(DB::table('ventes')->count())->toBe(2);
 });
 
@@ -181,10 +181,10 @@ it('C22 AnnulerLaVente libère le lot, annule la vente et envoie E14 ; vendeur d
     $other = makeCommercial();
 
     expect(jsonAction($w->corim, 'AnnulerLaVente', ['f_annuler_la_vente_idlot' => $lot->id, 'f_annuler_la_vente_vendeur' => $other->id, 'f_annuler_la_vente_sms' => 'Non'])->getContent())->toBe('{"errors":0}')
-        ->and(lotStatut($lot->id))->toBe('act')
+        ->and(lotStatus($lot->id))->toBe('act')
         ->and(sentMails())->toBeEmpty();
 
-    expect(jsonAction($w->corim, 'AnnulerLaVente', ['f_annuler_la_vente_idlot' => $lot->id, 'f_annuler_la_vente_vendeur' => $w->presc->id, 'f_annuler_la_vente_sms' => 'Annulée'])->getContent())->toBe('{"errors":1}');
+    expect(jsonAction($w->corim, 'AnnulerLaVente', ['f_annuler_la_vente_idlot' => $lot->id, 'f_annuler_la_vente_vendeur' => $w->prescriber->id, 'f_annuler_la_vente_sms' => 'Annulée'])->getContent())->toBe('{"errors":1}');
     $row = DB::table('appartements')->find($lot->id);
     expect($row->statut)->toBe('')
         ->and($row->client)->toBe('')
@@ -205,9 +205,9 @@ it('C23 DeleteDenonciation supprime la dénonciation → 1, id inexistant → 0'
 it('C24 UpdateDate ne modifie que la colonne prévue pour chacun des 8 types, type inconnu → 0', function () {
     $w = workflowWorld();
     $l = $w->lots;
-    DB::table('options')->insert(demandeRow($l['opt'], $w->presc->id, ['date' => '2025-06-01 10:00:00']) + ['idlot' => $l['opt']->id, 'statut' => 0]);
-    DB::table('reservations')->insert(demandeRow($l['res'], $w->presc->id, ['date' => '2025-06-01 10:00:00']) + ['idlot' => $l['res']->id, 'statut' => 0]);
-    DB::table('ventes')->insert(['iduser' => $w->presc->id, 'idlot' => $l['act']->id, 'date' => '2025-06-01 10:00:00', 'statut' => 0, 'date_resa' => '2025-05-01 10:00:00']);
+    DB::table('options')->insert(requestRow($l['opt'], $w->prescriber->id, ['date' => '2025-06-01 10:00:00']) + ['idlot' => $l['opt']->id, 'statut' => 0]);
+    DB::table('reservations')->insert(requestRow($l['res'], $w->prescriber->id, ['date' => '2025-06-01 10:00:00']) + ['idlot' => $l['res']->id, 'statut' => 0]);
+    DB::table('ventes')->insert(['iduser' => $w->prescriber->id, 'idlot' => $l['act']->id, 'date' => '2025-06-01 10:00:00', 'statut' => 0, 'date_resa' => '2025-05-01 10:00:00']);
     $time = '2026-05-05 08:00:00';
 
     $cases = [
@@ -243,7 +243,7 @@ it('C24 UpdateDate ne modifie que la colonne prévue pour chacun des 8 types, ty
 it('C25 SearchProspect : vide → 0, types 1/2/3 → call aux clés prospects.*, prescripteur limité à ses lignes, rien → 2', function () {
     $w = workflowWorld();
     $other = makeCommercial(['name' => 'Zoe Concurrente']);
-    DB::table('prospects')->insert(prospectRow($w->projet->projet_id, $other->id, ['nomprospect' => 'Mme VALIDEE Autre']));
+    DB::table('prospects')->insert(prospectRow($w->program->projet_id, $other->id, ['nomprospect' => 'Mme VALIDEE Autre']));
 
     expect(jsonAction($w->corim, 'SearchProspect', ['f_recherche_denonciation_search' => '', 'f_recherche_denonciation_type' => '1'])->getContent())->toBe('{"errors":0}');
 
@@ -257,7 +257,7 @@ it('C25 SearchProspect : vide → 0, types 1/2/3 → call aux clés prospects.*,
         ->and($data['call'][0]['date'])->toMatch('/^\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}$/');
     expect($names($call($w->corim, 'JARDINS', '2')))->toBe(['Mme VALIDEE Autre', 'Mme VALIDEE Julie'])
         ->and($names($call($w->corim, 'Concurrente', '3')))->toBe(['Mme VALIDEE Autre'])
-        ->and($names($call($w->presc, 'VALIDEE', '1')))->toBe(['Mme VALIDEE Julie'])
-        ->and($call($w->presc, 'Concurrente', '3'))->toBe(['errors' => 2])
+        ->and($names($call($w->prescriber, 'VALIDEE', '1')))->toBe(['Mme VALIDEE Julie'])
+        ->and($call($w->prescriber, 'Concurrente', '3'))->toBe(['errors' => 2])
         ->and($call($w->corim, 'INTROUVABLE', '1'))->toBe(['errors' => 2]);
 });

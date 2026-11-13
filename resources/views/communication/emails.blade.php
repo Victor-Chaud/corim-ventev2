@@ -20,7 +20,7 @@
         	<td align="center" width="25%">{{ date('d/m/Y', (int) $email->time) }}</td>
             <td width="25%">{{ html_entity_decode((string) $email->email, ENT_QUOTES) }}</td>
             <td align="center" width="25%">
-				{{ html_entity_decode($email->programme, ENT_QUOTES) }}
+				{{ html_entity_decode($email->program, ENT_QUOTES) }}
             </td>
             <td align="center" width="25%">{{ $email->plan }}</td>
         </tr>

@@ -8,7 +8,7 @@ const WORKFLOW_TABLES = ['appartements', 'd_options', 'options', 'd_reservations
 
 const WORKFLOW_ACTIONS = ['AddOption', 'AddReservation', 'AddProspect', 'AcceptAddOption', 'RejetAddOption', 'AcceptAddResa', 'RejetAddResa', 'AcceptAddDenonciation', 'RejetAddDenonciation', 'PasserEnResa', 'AnnulerOption', 'AnnulerResa', 'PasserEnActer', 'Acter', 'AnnulerLaVente', 'DeleteDenonciation', 'UpdateDate', 'SearchProspect'];
 
-function demandeRow(object $lot, int $userId, array $attributes = []): array
+function requestRow(object $lot, int $userId, array $attributes = []): array
 {
     return array_merge([
         'iduser' => $userId,
@@ -20,14 +20,14 @@ function demandeRow(object $lot, int $userId, array $attributes = []): array
     ], $attributes);
 }
 
-function prospectRow(int $projetId, int $userId, array $attributes = []): array
+function prospectRow(int $programId, int $userId, array $attributes = []): array
 {
     return array_merge([
         'nomprospect' => 'M PROSPECT Paul',
         'cpprospect' => '34000',
         'villeprospect' => 'MONTPELLIER',
         'smspromoteur' => 'Message de dénonciation',
-        'idprojet' => $projetId,
+        'idprojet' => $programId,
         'iduser' => $userId,
         'date' => '2026-01-20 10:00:00',
     ], $attributes);
@@ -36,27 +36,27 @@ function prospectRow(int $projetId, int $userId, array $attributes = []): array
 function workflowWorld(): object
 {
     $corim = corimAdmin();
-    $presc = makeCommercial(['name' => 'Paul Prescripteur', 'email' => 'prescripteur@exemple.test']);
-    $projet = makeProjet(['projet_titre' => 'LES JARDINS TEST', 'projet_lieu' => 'MONTPELLIER']);
-    DB::table('acces')->insert(['iduser' => $presc->id, 'idprojet' => $projet->projet_id]);
+    $prescriber = makeCommercial(['name' => 'Paul Prescripteur', 'email' => 'prescripteur@exemple.test']);
+    $program = makeProgram(['projet_titre' => 'LES JARDINS TEST', 'projet_lieu' => 'MONTPELLIER']);
+    DB::table('acces')->insert(['iduser' => $prescriber->id, 'idprojet' => $program->projet_id]);
 
     $lots = [];
-    foreach (['libre' => '', 'askopt' => 'opt', 'askres' => 'res', 'opt' => 'opt', 'res' => 'res', 'act' => 'act'] as $name => $statut) {
-        $lots[$name] = makeLot($projet->projet_id, ['statut' => $statut, 'numero' => strtoupper($name).'-1']);
-        DB::table('acces_lot')->insert(['iduser' => $presc->id, 'idlot' => $lots[$name]->id]);
+    foreach (['libre' => '', 'askopt' => 'opt', 'askres' => 'res', 'opt' => 'opt', 'res' => 'res', 'act' => 'act'] as $name => $status) {
+        $lots[$name] = makeLot($program->projet_id, ['statut' => $status, 'numero' => strtoupper($name).'-1']);
+        DB::table('acces_lot')->insert(['iduser' => $prescriber->id, 'idlot' => $lots[$name]->id]);
     }
-    DB::table('appartements')->where('id', $lots['act']->id)->update(['client' => 'Mme ACHETEUR Anne', 'vendeur' => $presc->id]);
+    DB::table('appartements')->where('id', $lots['act']->id)->update(['client' => 'Mme ACHETEUR Anne', 'vendeur' => $prescriber->id]);
     $lots['act'] = DB::table('appartements')->find($lots['act']->id);
 
-    DB::table('d_options')->insert(demandeRow($lots['askopt'], $presc->id) + ['iddlot' => $lots['askopt']->id]);
-    DB::table('d_reservations')->insert(demandeRow($lots['askres'], $presc->id) + ['iddlot' => $lots['askres']->id]);
-    DB::table('options')->insert(demandeRow($lots['opt'], $presc->id, ['date' => '2026-01-11 10:00:00']) + ['idlot' => $lots['opt']->id, 'statut' => 1]);
-    DB::table('reservations')->insert(demandeRow($lots['res'], $presc->id, ['date' => '2026-01-12 10:00:00']) + ['idlot' => $lots['res']->id, 'statut' => 1]);
-    DB::table('ventes')->insert(['iduser' => $presc->id, 'idlot' => $lots['act']->id, 'date' => '2026-02-01 10:00:00', 'statut' => 1, 'date_resa' => '2026-01-05 10:00:00']);
-    $askProspect = DB::table('d_prospects')->insertGetId(prospectRow($projet->projet_id, $presc->id), 'idprospect');
-    $prospect = DB::table('prospects')->insertGetId(prospectRow($projet->projet_id, $presc->id, ['nomprospect' => 'Mme VALIDEE Julie']), 'idprospect');
+    DB::table('d_options')->insert(requestRow($lots['askopt'], $prescriber->id) + ['iddlot' => $lots['askopt']->id]);
+    DB::table('d_reservations')->insert(requestRow($lots['askres'], $prescriber->id) + ['iddlot' => $lots['askres']->id]);
+    DB::table('options')->insert(requestRow($lots['opt'], $prescriber->id, ['date' => '2026-01-11 10:00:00']) + ['idlot' => $lots['opt']->id, 'statut' => 1]);
+    DB::table('reservations')->insert(requestRow($lots['res'], $prescriber->id, ['date' => '2026-01-12 10:00:00']) + ['idlot' => $lots['res']->id, 'statut' => 1]);
+    DB::table('ventes')->insert(['iduser' => $prescriber->id, 'idlot' => $lots['act']->id, 'date' => '2026-02-01 10:00:00', 'statut' => 1, 'date_resa' => '2026-01-05 10:00:00']);
+    $askProspect = DB::table('d_prospects')->insertGetId(prospectRow($program->projet_id, $prescriber->id), 'idprospect');
+    $prospect = DB::table('prospects')->insertGetId(prospectRow($program->projet_id, $prescriber->id, ['nomprospect' => 'Mme VALIDEE Julie']), 'idprospect');
 
-    return (object) compact('corim', 'presc', 'projet', 'lots', 'askProspect', 'prospect');
+    return (object) compact('corim', 'prescriber', 'program', 'lots', 'askProspect', 'prospect');
 }
 
 function optionPayload(object $lot, array $overrides = [], string $idKey = 'id_option'): array
@@ -73,7 +73,7 @@ function optionPayload(object $lot, array $overrides = [], string $idKey = 'id_o
     ], $overrides);
 }
 
-function prospectPayload(int $projetId, array $overrides = []): array
+function prospectPayload(int $programId, array $overrides = []): array
 {
     return array_merge([
         'f_new_prospect_civilite' => 'Mme & M.',
@@ -82,19 +82,19 @@ function prospectPayload(int $projetId, array $overrides = []): array
         'f_new_prospect_cp' => '34070',
         'f_new_prospect_ville' => 'MONTPELLIER',
         'f_new_prospect_sms' => 'Clients intéressés par un T3',
-        'f_new_prospect_projet' => $projetId,
+        'f_new_prospect_projet' => $programId,
     ], $overrides);
 }
 
 function workflowActions(object $w): array
 {
-    $u = $w->presc->id;
+    $u = $w->prescriber->id;
     $l = $w->lots;
 
     return [
         'AddOption' => optionPayload($l['libre']),
         'AddReservation' => optionPayload($l['libre'], [], 'id_reserver'),
-        'AddProspect' => prospectPayload($w->projet->projet_id),
+        'AddProspect' => prospectPayload($w->program->projet_id),
         'AcceptAddOption' => ['f_confirm_ask_option_lot' => $l['askopt']->id, 'f_confirm_ask_option_user' => $u, 'f_confirm_ask_option_sms' => 'Ok'],
         'RejetAddOption' => ['f_refuser_ask_option_lot' => $l['askopt']->id, 'f_refuser_ask_option_user' => $u, 'f_refuser_ask_option_sms' => 'Non'],
         'AcceptAddResa' => ['f_confirm_ask_resa_lot' => $l['askres']->id, 'f_confirm_ask_resa_user' => $u, 'f_confirm_ask_resa_sms' => 'Ok'],
@@ -118,7 +118,7 @@ function workflowState(): string
     return tablesState(WORKFLOW_TABLES);
 }
 
-function lotStatut(int $id): ?string
+function lotStatus(int $id): ?string
 {
     return DB::table('appartements')->where('id', $id)->value('statut');
 }

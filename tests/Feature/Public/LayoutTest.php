@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\DB;
 
-const ADMIN_MENU = ['gestion_programmes">Programmes', 'gestion_clients">Clients', 'gestion_prospects">Prospects', 'gestion_promoteurs">Prescripteurs', 'gestion_privilege">Privilèges', 'emailing">Emailing', 'emails">Emails', 'flash_info">Flash info'];
+const ADMIN_MENU = ['gestion_programmes">Programmes', 'gestion_promoteurs">Prescripteurs', 'gestion_privilege">Privilèges', 'emails">Emails', 'flash_info">Flash info'];
 
 const COMMON_MENU = ['denonciations">Dénonciations', 'messagerie">Messagerie', 'contact">Contacter Corim', 'logout">Déconnexion'];
 
@@ -13,7 +13,7 @@ function headOf($response): string
     return substr($html, 0, (int) strpos($html, '</head>'));
 }
 
-it('C10 menu admin : 8 entrées admin dans l\'ordre puis Dénonciations, Messagerie, Contacter Corim, Déconnexion', function () {
+it('C10 menu admin : 5 entrées admin dans l\'ordre puis Dénonciations, Messagerie, Contacter Corim, Déconnexion', function () {
     foreach (['/', '/cgu'] as $url) {
         $this->actingAs(makeAdmin())->get($url)->assertOk()->assertSeeInOrder([...ADMIN_MENU, ...COMMON_MENU], false);
     }
@@ -32,19 +32,19 @@ it('C11 menu prescripteur : Dénonciations, Messagerie, Contacter Corim, Déconn
 
 it('C12 badge Messagerie : non-lus reçus, sujets automatiques exclus pour l\'admin, absent à 0', function () {
     $admin = corimAdmin();
-    $presc = makeCommercial();
+    $prescriber = makeCommercial();
     $idle = makeCommercial();
-    $mp = fn ($from, $to, $sujet, $lu = 0) => DB::table('mp')->insert(['idemetteur' => $from, 'idreceveur' => $to, 'sujet' => $sujet, 'message' => 'x', 'date' => '2026-01-01 10:00:00', 'lu' => $lu, 'cle' => sha1(uniqid('', true)), 'parent' => 0]);
-    $mp($presc->id, $admin->id, 'Question');
-    $mp($presc->id, $admin->id, 'Question 2');
-    $mp($presc->id, $admin->id, 'Vous avez une demande de réservation en attente');
-    $mp($presc->id, $admin->id, 'Lu', 1);
+    $mp = fn ($from, $to, $subject, $lu = 0) => DB::table('mp')->insert(['idemetteur' => $from, 'idreceveur' => $to, 'sujet' => $subject, 'message' => 'x', 'date' => '2026-01-01 10:00:00', 'lu' => $lu, 'cle' => sha1(uniqid('', true)), 'parent' => 0]);
+    $mp($prescriber->id, $admin->id, 'Question');
+    $mp($prescriber->id, $admin->id, 'Question 2');
+    $mp($prescriber->id, $admin->id, 'Vous avez une demande de réservation en attente');
+    $mp($prescriber->id, $admin->id, 'Lu', 1);
     $mp(999999, $admin->id, 'Émetteur supprimé');
-    $mp($admin->id, $presc->id, 'Votre dossier a été acté');
+    $mp($admin->id, $prescriber->id, 'Votre dossier a été acté');
 
     expect(pageText($this->actingAs($admin)->get('/')))->toContain('messagerie">Messagerie <span class="label label-info">2</span></a>');
     app('auth')->forgetGuards();
-    expect(pageText($this->actingAs($presc)->get('/')))->toContain('messagerie">Messagerie <span class="label label-info">1</span></a>');
+    expect(pageText($this->actingAs($prescriber)->get('/')))->toContain('messagerie">Messagerie <span class="label label-info">1</span></a>');
     app('auth')->forgetGuards();
     expect(pageText($this->actingAs($idle)->get('/')->assertOk()))->not->toContain('label-info');
 });
@@ -71,10 +71,10 @@ it('C14 pied de page : footer.no-print sur les pages internes, footer sans class
 
 it('C15 le <head> charge les CSS/JS dans l\'ordre legacy, CSS conditionnelle selon le segment 1', function () {
     $admin = corimAdmin();
-    $projet = makeProjet();
+    $program = makeProgram();
     $assets = ['bootstrap.min.css', 'bootstrap-select.min.css', 'uestrial', 'print.css', 'print-preview.css', 'jquery-ui-1.9.0.custom.min.css', 'jquery-3.7.1', 'jquery.browser.js', 'bootstrap.min.js', 'jquery-ui.min.js', 'bootstrap-select.min.js', 'defaults-fr_FR.min.js', 'ckeditor.js', 'jquery.tablesorter.combined.js', 'theme.green.css', 'colorbox.css', 'jquery.colorbox-min.js'];
     $tail = ['jquery.confirm.css', 'jquery.confirm.js', 'global.css', 'jquery.print-preview.js', 'global.js'];
-    $conditional = ['/messagerie' => ['messagerie.css'], '/contact' => ['contact.css'], "/programme/show/$projet->projet_titre_key" => ['flexigrid.pack.css', 'flexigrid.pack.js'], '/gestion_programmes' => ['jquery.jscrollpane.css', 'jquery.mousewheel.js', 'jquery.jscrollpane.min.js']];
+    $conditional = ['/messagerie' => ['messagerie.css'], '/contact' => ['contact.css'], "/programme/show/$program->projet_titre_key" => ['flexigrid.pack.css', 'flexigrid.pack.js'], '/gestion_programmes' => ['jquery.jscrollpane.css', 'jquery.mousewheel.js', 'jquery.jscrollpane.min.js']];
 
     foreach ($conditional as $url => $own) {
         $head = headOf($this->actingAs($admin)->get($url)->assertOk());

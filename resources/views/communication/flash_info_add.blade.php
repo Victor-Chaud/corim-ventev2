@@ -47,8 +47,8 @@
           </div>
           <div class="media-body">
             <select name="thumb" id="thumb" class="form-control">
-					@foreach ($programmes as $programme)
-                        <option value="{{ $programme->projet_id }}" >{{ $d($programme->projet_titre) }}</option>
+					@foreach ($programs as $program)
+                        <option value="{{ $program->projet_id }}" >{{ $d($program->projet_titre) }}</option>
                     @endforeach
                 <option value="0" >AUTRE</option>
             </select>

@@ -19,7 +19,8 @@
             	<input size="10" type="text" class="datepicker" id="datepicker_{{ $reservation->idlot }}_resa" value="{{ $reservation->date }}" />
                 <input type="hidden" type="text" class="datepickeralt" value="" />
             </td>
-            @else<td align="center">{{ $reservation->date }}</td>@endif<td align="center">{{ $reservation->projet_titre }}</td><td align="center">{{ $reservation->projet_lieu }}</td><td align="center">{{ $reservation->numero }}</td><td align="center">{{ $reservation->nom }}</td><td align="center">{{ $reservation->adresse }}</td><td align="center">{{ $reservation->name }}</td><td align="center">@if ($reservation->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $reservation->idlot }}-resa" href="javascript:void(0)" class="passer_en_act btn btn-primary btn-xs">ACTER</a><a rel="{{ $reservation->idlot }}-{{ $reservation->iduser }}" href="javascript:void(0)" class="annuler_resa btn btn-warning btn-xs">ANNULER</a></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 10 : 9 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($reservation->message) }}</td></tr>@endforeach</tbody></table>@endif
+            @else<td align="center">{{ $reservation->date }}</td>@endif<td align="center">{{ $reservation->projet_titre }}</td><td align="center">{{ $reservation->projet_lieu }}</td><td align="center">{{ $reservation->numero }}</td><td align="center">{{ $reservation->nom }}</td><td align="center">{{ $reservation->adresse }}</td><td align="center">{{ $reservation->name }}</td><td align="center">@if ($reservation->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $reservation->idlot }}-resa" href="javascript:void(0)" class="passer_en_act btn btn-primary btn-xs">ACTER</a><a rel="{{ $reservation->idlot }}-{{ $reservation->iduser }}" href="javascript:void(0)" class="annuler_resa btn btn-warning btn-xs">ANNULER</a></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 10 : 9 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($reservation->message) }}</td></tr>@endforeach</tbody></table>
+{{ $rows->links() }}@endif
 <div style="display:none">
 	<div id="passer_en_act_box">
     	<h3>Acter le dossier</h3>
@@ -47,7 +48,7 @@
         <table align="center" cellpadding="10">
         	<tr>
             	<td align="center">Laisser un message<br />au prescripteur :</td>
-                <td align="center"><textarea name="f_annuler_resa_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\MessagesAutoController::texte('reservation_annulee') }}</textarea></td>
+                <td align="center"><textarea name="f_annuler_resa_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\AutoMessagesController::text('reservation_annulee') }}</textarea></td>
             </tr>
             <tr>
             	<td colspan="2" align="center">

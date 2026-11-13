@@ -22,12 +22,12 @@ class ContactController extends Controller
         if ($request->isMethod('post')) {
             $errors = MessageController::required($request, ['objet', 'message']);
             if ($errors === []) {
-                $programme = (string) $request->input('programme', '0');
+                $program = (string) $request->input('programme', '0');
                 $message = (string) $request->input('message');
-                if ($programme !== '0' && $programme !== '') {
-                    $message = '<b>Programme concerné :</b> '.$programme.'<br /><br />'.$message;
+                if ($program !== '0' && $program !== '') {
+                    $message = '<b>Programme concerné :</b> '.$program.'<br /><br />'.$message;
                 }
-                MessagerieController::send($user->id, 1, MessageController::normalize((string) $request->input('objet')), MessageController::normalize($message));
+                MessagingController::send($user->id, 1, MessageController::normalize((string) $request->input('objet')), MessageController::normalize($message));
                 Mail::to((string) config('mail.corim.address'))->send(new ContactMail);
                 $valid = 'Votre message à bien été envoyé';
             }
@@ -35,9 +35,9 @@ class ContactController extends Controller
 
         return view('communication.contact', [
             'title' => 'Corim promotion - Nous contacter',
-            'erreurs' => $errors,
+            'formErrors' => $errors,
             'valid' => $valid,
-            'programmes' => DB::table('acces')->join('projet', 'acces.idprojet', '=', 'projet.projet_id')
+            'programs' => DB::table('acces')->join('projet', 'acces.idprojet', '=', 'projet.projet_id')
                 ->where('acces.iduser', $user->id)->orderByDesc('projet.projet_id')->select('projet.projet_titre')->get(),
         ]);
     }

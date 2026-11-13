@@ -8,11 +8,11 @@ const EVO_SETTINGS_TABLES = ['messages_auto'];
 
 beforeEach(fn () => legacyMailBase());
 
-function evoSaveMessages(User $user, array $textes, string $signature)
+function evoSaveMessages(User $user, array $texts, string $signature)
 {
     app('auth')->forgetGuards();
 
-    return test()->actingAs($user)->post(EVO_MESSAGES_URL, $textes + ['signature' => $signature]);
+    return test()->actingAs($user)->post(EVO_MESSAGES_URL, $texts + ['signature' => $signature]);
 }
 
 function evoMailHtml(): string
@@ -24,9 +24,9 @@ function evoMailHtml(): string
 }
 
 it('L7b l\'écran « Messages automatiques » est réservé à l\'admin', function () {
-    $presc = makeCommercial();
+    $prescriber = makeCommercial();
 
-    $refused = $this->actingAs($presc)->get(EVO_MESSAGES_URL);
+    $refused = $this->actingAs($prescriber)->get(EVO_MESSAGES_URL);
     expect($refused->getStatusCode())->not->toBe(200);
 
     app('auth')->forgetGuards();
@@ -37,10 +37,10 @@ it('L7b l\'écran « Messages automatiques » est réservé à l\'admin', functi
 });
 
 it('L7b un prescripteur ne peut pas enregistrer de messages ni de signature', function () {
-    $presc = makeCommercial();
+    $prescriber = makeCommercial();
     $before = tablesState(EVO_SETTINGS_TABLES);
 
-    evoSaveMessages($presc, ['denonciation_validee' => 'PIRATE'], 'SIGNATURE PIRATE');
+    evoSaveMessages($prescriber, ['denonciation_validee' => 'PIRATE'], 'SIGNATURE PIRATE');
 
     expect(tablesState(EVO_SETTINGS_TABLES))->toBe($before);
 });
@@ -71,9 +71,9 @@ it('L7b la fenêtre de décision est pré-remplie avec le message type', functio
         '/ask_options' => ['f_confirm_ask_option_sms' => 'TEXTE-OPT-OK', 'f_refuser_ask_option_sms' => 'TEXTE-OPT-KO'],
         '/ask_reservations' => ['f_confirm_ask_resa_sms' => 'TEXTE-RES-OK', 'f_refuser_ask_resa_sms' => 'TEXTE-RES-KO']] as $url => $fields) {
         $content = (string) $this->actingAs($w->corim)->get($url)->assertOk()->getContent();
-        foreach ($fields as $field => $texte) {
+        foreach ($fields as $field => $text) {
             expect(preg_match('#<textarea[^>]*name="'.$field.'"[^>]*>([^<]*)</textarea>#', $content, $m))->toBe(1, "$url $field")
-                ->and($m[1])->toContain($texte);
+                ->and($m[1])->toContain($text);
         }
     }
 });
@@ -82,7 +82,7 @@ it('L7b les variables {prescripteur} {programme} {lot} {acquereur} sont remplac�
     $w = workflowWorld();
 
     jsonAction($w->corim, 'AcceptAddOption', [
-        'f_confirm_ask_option_lot' => $w->lots['askopt']->id, 'f_confirm_ask_option_user' => $w->presc->id,
+        'f_confirm_ask_option_lot' => $w->lots['askopt']->id, 'f_confirm_ask_option_user' => $w->prescriber->id,
         'f_confirm_ask_option_sms' => 'Bonjour {prescripteur}, option sur {programme} lot {lot} pour {acquereur}.',
     ]);
 
@@ -95,7 +95,7 @@ it('L7b les variables sont aussi remplacées pour une dénonciation', function (
     $w = workflowWorld();
 
     jsonAction($w->corim, 'AcceptAddDenonciation', [
-        'f_confirm_ask_denonciation_lot' => $w->askProspect, 'f_confirm_ask_denonciation_user' => $w->presc->id,
+        'f_confirm_ask_denonciation_lot' => $w->askProspect, 'f_confirm_ask_denonciation_user' => $w->prescriber->id,
         'f_confirm_ask_denonciation_sms' => '{prescripteur} / {programme} / {acquereur}',
     ]);
 
@@ -106,7 +106,7 @@ it('L7b le mail fixe police et taille en ligne, garde les retours à la ligne et
     $w = workflowWorld();
 
     jsonAction($w->corim, 'AcceptAddOption', [
-        'f_confirm_ask_option_lot' => $w->lots['askopt']->id, 'f_confirm_ask_option_user' => $w->presc->id,
+        'f_confirm_ask_option_lot' => $w->lots['askopt']->id, 'f_confirm_ask_option_user' => $w->prescriber->id,
         'f_confirm_ask_option_sms' => "Ligne un\nLigne <b>deux</b>",
     ]);
 
@@ -120,7 +120,7 @@ it('L7b le mail fixe police et taille en ligne, garde les retours à la ligne et
 it('L7b sans paramétrage, la signature par défaut est l\'actuelle (Le Cristal)', function () {
     $w = workflowWorld();
 
-    jsonAction($w->corim, 'RejetAddOption', ['f_refuser_ask_option_lot' => $w->lots['askopt']->id, 'f_refuser_ask_option_user' => $w->presc->id, 'f_refuser_ask_option_sms' => 'Non']);
+    jsonAction($w->corim, 'RejetAddOption', ['f_refuser_ask_option_lot' => $w->lots['askopt']->id, 'f_refuser_ask_option_user' => $w->prescriber->id, 'f_refuser_ask_option_sms' => 'Non']);
 
     $text = decoded(evoMailHtml());
     expect($text)->toContain('Immeuble "Le Cristal"')->toContain('1475 av.Albert Einstein')->toContain('04 99 58 86 86')->toContain('06 12 36 06 94');
@@ -131,7 +131,7 @@ it('L7b la signature enregistrée par l\'admin remplace la signature en dur, ave
     evoSaveMessages(makeAdmin(), [], "Jean DUPONT\nDirecteur <commercial>");
 
     app('auth')->forgetGuards();
-    jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => $w->lots['askres']->id, 'f_confirm_ask_resa_user' => $w->presc->id, 'f_confirm_ask_resa_sms' => 'Ok']);
+    jsonAction($w->corim, 'AcceptAddResa', ['f_confirm_ask_resa_lot' => $w->lots['askres']->id, 'f_confirm_ask_resa_user' => $w->prescriber->id, 'f_confirm_ask_resa_sms' => 'Ok']);
 
     $html = evoMailHtml();
     expect($html)->toMatch('#Jean DUPONT\s*<br\s*/?>\s*Directeur &lt;commercial&gt;#')

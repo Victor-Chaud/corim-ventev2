@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\Mime\Email;
 
 const CORIM_FAX_SIGNATURE = 'Immeuble "Le Cristal"<br />1475 av.Albert Einstein<br />34000  MONTPELLIER<br />Tél : 04 99 58 86 86<br />Fax : 04 67 60 40 77';
 
@@ -52,39 +51,12 @@ function contactMailBody(): string
     return '<table width="500"><tr><td align="left"><img src="'.CORIM_BASE.'medias/images/logo-corim.png" /></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td>Vous avez reçu un nouveau message<br /><br />Pour y accéder, vous pouvez cliquer <a href="'.CORIM_BASE.'messagerie">ici</a></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td align="left">'.CORIM_FAX_SIGNATURE.'</td></tr></table>';
 }
 
-function emailingBody(string $objet, string $message): string
-{
-    return '<html><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>'.$objet.'</title><body><table width="500"><tr><td align="left"><img src="'.CORIM_BASE.'medias/images/logo-corim.png" /></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td>'.$message.'</td></tr><tr><td align="left">&nbsp;</td></tr><tr><td align="left">'.CORIM_FAX_SIGNATURE.'</td></tr></table></body></html>';
-}
-
 function compactHtml(string $html): string
 {
     return preg_replace('/>\s+</', '><', trim($html));
 }
 
-function mailRecipients(): array
-{
-    $to = [];
-    foreach (sentMails() as $mail) {
-        foreach ($mail->getTo() as $address) {
-            $to[] = $address->getAddress();
-        }
-    }
-    sort($to);
-
-    return $to;
-}
-
-function expectBulkMail(Email $mail, string $subject): void
-{
-    expect($mail->getSubject())->toBe($subject)
-        ->and($mail->getFrom()[0]->getAddress())->toBe(CORIM_TO)
-        ->and(mb_strtolower($mail->getFrom()[0]->getName()))->toBe('corim promotion')
-        ->and(array_map(fn ($address) => $address->getAddress(), $mail->getReplyTo()))->toBe([CORIM_TO])
-        ->and(strtolower((string) $mail->getHtmlCharset()))->toBe('utf-8');
-}
-
-function prescripteurIds(): array
+function prescriberIds(): array
 {
     return DB::table('user')->join('privileges', 'privileges.iduser', '=', 'user.id')
         ->where('privileges.acces', 0)->orderBy('user.id')->pluck('user.id')->map(fn ($id) => (int) $id)->all();

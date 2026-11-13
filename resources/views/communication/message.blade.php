@@ -5,8 +5,8 @@
 @section('content')
 <h3>Envoyer un nouveau message</h3><br />
 <div id="contact">
-@if ($erreurs)
-<div class="error">@foreach ($erreurs as $erreur){!! $erreur !!}@endforeach</div>
+@if ($formErrors)
+<div class="error">@foreach ($formErrors as $error){!! $error !!}@endforeach</div>
 @endif
 @if ($valid)
 <div class="success">{{ $valid }}</div>
@@ -40,27 +40,13 @@
                     </tr>
                     <tr>
                     	<td valign="middle">
-                        	<input type="radio" name="method" value="client" id="push_radio_client" {!! $v('method') === 'client' ? 'checked="checked"' : '' !!} /> Client
-                        </td>
-                        <td>
-                            <select name="client_select">
-                                <option value="0">Choisir</option>
-                                <option value="all">Tous les clients</option>
-                                @foreach ($clients as $client)
-<option value="{{ html_entity_decode((string) $client->email, ENT_QUOTES) }}" {!! $v('client_select') !== '' && $v('client_select') === html_entity_decode((string) $client->email, ENT_QUOTES) ? 'selected="selected"' : '' !!}>{{ $d($client->nom) }}</option>
-                                @endforeach
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                    	<td valign="middle">
                         	<input type="radio" name="method" value="programme" {!! $v('method') === 'programme' ? 'checked="checked"' : '' !!} /> Programme
                         </td>
                         <td>
                         	<select name="programme_select">
                                 <option value="0">Choisir</option>
-                                @foreach ($programmes as $programme)
-<option value="{{ $programme->projet_id }}">{{ $d($programme->projet_titre) }}</option>
+                                @foreach ($programs as $program)
+<option value="{{ $program->projet_id }}">{{ $d($program->projet_titre) }}</option>
                                 @endforeach
                             </select>
                         </td>

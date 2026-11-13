@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\ClientsProspects;
 
 use App\Http\Controllers\Controller;
-use App\Mail\ClientsProspects\DenonciationMail;
+use App\Mail\ClientsProspects\ReferralMail;
 use App\Models\User;
 use App\Support\Access;
 use App\Support\LegacyJson;
@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\View\View;
 
 class ProspectsController extends Controller
 {
@@ -20,11 +19,6 @@ class ProspectsController extends Controller
     private static function normalize(mixed $value): string
     {
         return htmlspecialchars((string) $value, ENT_QUOTES);
-    }
-
-    public function index(): View
-    {
-        return view('clients-prospects.prospects', ['title' => 'Corim promotion - Gestion des prospects']);
     }
 
     public function search(Request $request): Response
@@ -68,20 +62,20 @@ class ProspectsController extends Controller
         assert($user instanceof User);
         $input = fn (string $key) => (string) $request->input($key, '');
         $sender = (string) $user->id;
-        $prescripteur = $input('prescripteur_select');
-        if ($user->isAdmin() && $prescripteur !== '' && $prescripteur !== '0') {
-            $sender = $prescripteur;
+        $prescriber = $input('prescripteur_select');
+        if ($user->isAdmin() && $prescriber !== '' && $prescriber !== '0') {
+            $sender = $prescriber;
         }
-        $projet = $input('f_new_prospect_projet');
+        $program = $input('f_new_prospect_projet');
 
-        if ($input('f_new_prospect_name') === '' || $input('f_new_prospect_prenom') === '' || $input('f_new_prospect_cp') === '' || $input('f_new_prospect_ville') === '' || $projet === '') {
+        if ($input('f_new_prospect_name') === '' || $input('f_new_prospect_prenom') === '' || $input('f_new_prospect_cp') === '' || $input('f_new_prospect_ville') === '' || $program === '') {
             return LegacyJson::respond(['errors' => 0]);
         }
         if (! ctype_digit($sender) || ! DB::table('user')->where('id', (int) $sender)->exists()) {
             return LegacyJson::respond(['errors' => 3]);
         }
         $cp = self::normalize($input('f_new_prospect_cp'));
-        if (! ctype_digit($projet) || mb_strlen($cp) > 6 || ! Access::canSeeProgramme($user, (int) $projet)) {
+        if (! ctype_digit($program) || mb_strlen($cp) > 6 || ! Access::canSeeProgram($user, (int) $program)) {
             return LegacyJson::respond(['errors' => 2]);
         }
 
@@ -91,7 +85,7 @@ class ProspectsController extends Controller
             'nomprospect' => mb_substr(self::normalize($input('f_new_prospect_civilite')).' '.self::normalize($input('f_new_prospect_name').' '.$input('f_new_prospect_prenom')), 0, 150),
             'cpprospect' => $cp,
             'villeprospect' => mb_substr(self::normalize($input('f_new_prospect_ville')), 0, 150),
-            'idprojet' => (int) $projet,
+            'idprojet' => (int) $program,
             'iduser' => (int) $sender,
         ];
         if (DB::table('d_prospects')->where($prospect)->exists()) {
@@ -111,7 +105,7 @@ class ProspectsController extends Controller
         if (! $inserted) {
             return LegacyJson::respond(['errors' => 2]);
         }
-        Mail::to((string) config('mail.corim.address'))->send(new DenonciationMail);
+        Mail::to((string) config('mail.corim.address'))->send(new ReferralMail);
 
         return LegacyJson::respond(['errors' => 1]);
     }

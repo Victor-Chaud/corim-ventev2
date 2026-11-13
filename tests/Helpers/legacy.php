@@ -21,12 +21,12 @@ function mailNotification(string $phrase): string
     return '<table width="500"><tr><td align="left"><img src="'.CORIM_BASE.'medias/images/logo-corim.png" /></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td>'.$phrase.'<br /><br />Pour y accéder, vous pouvez cliquer <a href="'.CORIM_BASE.'messagerie">ici</a></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td align="left">'.CORIM_SIGNATURE.'</td></tr></table>';
 }
 
-function mailPrescripteur(string $phrase, string $sms, string $titre, string $ligne2): string
+function mailPrescriber(string $phrase, string $sms, string $title, string $secondLine): string
 {
     $font = 'font-family:Arial,Helvetica,sans-serif;font-size:14px';
     $signature = nl2br(htmlspecialchars(str_replace('<br />', "\n", CORIM_SIGNATURE), ENT_QUOTES), false);
 
-    return '<table width="500" style="'.$font.';line-height:1.5;color:#333333"><tr><td align="left"><img src="'.CORIM_BASE.'medias/images/logo-corim.png" /></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td style="'.$font.'">Bonjour,<br /><br />'.$phrase.'<br /><br />'.nl2br(htmlspecialchars($sms, ENT_QUOTES), false).'</td></tr><tr><td align="left">&nbsp;</td></tr><tr><td style="'.$font.'">Programme concerné : '.$titre.'</td></tr><tr><td style="'.$font.'">'.$ligne2.'</td></tr><tr><td align="left">&nbsp;</td></tr><tr><td align="left" style="'.$font.'">'.$signature.'</td></tr></table>';
+    return '<table width="500" style="'.$font.';line-height:1.5;color:#333333"><tr><td align="left"><img src="'.CORIM_BASE.'medias/images/logo-corim.png" /></td></tr><tr><td align="left">&nbsp;</td></tr><tr><td style="'.$font.'">Bonjour,<br /><br />'.$phrase.'<br /><br />'.nl2br(htmlspecialchars($sms, ENT_QUOTES), false).'</td></tr><tr><td align="left">&nbsp;</td></tr><tr><td style="'.$font.'">Programme concerné : '.$title.'</td></tr><tr><td style="'.$font.'">'.$secondLine.'</td></tr><tr><td align="left">&nbsp;</td></tr><tr><td align="left" style="'.$font.'">'.$signature.'</td></tr></table>';
 }
 
 function expectLegacyMail(Email $mail, string $to, string $subject, string $body): void

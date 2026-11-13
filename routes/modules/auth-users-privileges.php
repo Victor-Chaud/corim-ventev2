@@ -15,7 +15,7 @@ Route::middleware('throttle:20,1')->group(function () {
     Route::match(['get', 'post'], 'json/CheckAnswer', [PasswordController::class, 'checkAnswer']);
     Route::match(['get', 'post'], 'json/NewAccountSetting', [PasswordController::class, 'newAccountSetting']);
     Route::match(['get', 'post'], 'connexion/reinitialisation/{id}/{empreinte}', [PasswordController::class, 'reset'])
-        ->whereNumber('id')->name('password.reinitialisation');
+        ->whereNumber('id')->name('password.reset-link');
 });
 Route::match(['get', 'post'], 'json/GenerateNewAccountSetting/{id?}', fn () => response(''));
 
@@ -26,7 +26,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('admin')->group(function () {
         Route::match(['get', 'post'], 'gestion_privilege', [PrivilegeController::class, 'index']);
         Route::match(['get', 'post'], 'json/UpdateUserPrivilege', [PrivilegeController::class, 'update']);
-        Route::match(['get', 'post'], 'json/GetUserPrivilege', [PrivilegeController::class, 'projets']);
+        Route::match(['get', 'post'], 'json/GetUserPrivilege', [PrivilegeController::class, 'programs']);
         Route::match(['get', 'post'], 'json/GetUserPrivilegeLot', [PrivilegeController::class, 'lots']);
     });
 });

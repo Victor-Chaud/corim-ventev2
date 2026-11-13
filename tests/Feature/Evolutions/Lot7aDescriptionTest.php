@@ -16,20 +16,20 @@ function evoCleanupCommand(): string
 
 function evoDirtyDescriptions(): array
 {
-    $natura = makeProjet(['projet_titre' => 'NATURA EVO', 'projet_description' => 'Lien vers l'.str_repeat('\\', 7).'\'emplacement']);
-    $hilaire = makeProjet(['projet_titre' => 'ST HILAIRE EVO', 'projet_description' => 'Premier paragraphe.'.str_repeat('\\', 8).'n'.str_repeat('\\', 8).'nSecond paragraphe.']);
-    $propre = makeProjet(['projet_titre' => 'PROPRE EVO', 'projet_description' => "Déjà propre.\nAvec un retour."]);
+    $natura = makeProgram(['projet_titre' => 'NATURA EVO', 'projet_description' => 'Lien vers l'.str_repeat('\\', 7).'\'emplacement']);
+    $hilaire = makeProgram(['projet_titre' => 'ST HILAIRE EVO', 'projet_description' => 'Premier paragraphe.'.str_repeat('\\', 8).'n'.str_repeat('\\', 8).'nSecond paragraphe.']);
+    $clean = makeProgram(['projet_titre' => 'PROPRE EVO', 'projet_description' => "Déjà propre.\nAvec un retour."]);
 
-    return [$natura, $hilaire, $propre];
+    return [$natura, $hilaire, $clean];
 }
 
-function evoDescription(object $projet): string
+function evoDescription(object $program): string
 {
-    return (string) DB::table('projet')->where('projet_id', $projet->projet_id)->value('projet_description');
+    return (string) DB::table('projet')->where('projet_id', $program->projet_id)->value('projet_description');
 }
 
 it('L7a la commande de nettoyage sans --apply ne modifie rien', function () {
-    [$natura, $hilaire, $propre] = evoDirtyDescriptions();
+    [$natura, $hilaire, $clean] = evoDirtyDescriptions();
     $before = DB::table('projet')->orderBy('projet_id')->get()->toJson();
 
     Artisan::call(evoCleanupCommand());
@@ -38,13 +38,13 @@ it('L7a la commande de nettoyage sans --apply ne modifie rien', function () {
 });
 
 it('L7a la commande avec --apply retire les \\ accumulés et transforme les \\n littéraux en retours à la ligne', function () {
-    [$natura, $hilaire, $propre] = evoDirtyDescriptions();
+    [$natura, $hilaire, $clean] = evoDirtyDescriptions();
 
     expect(Artisan::call(evoCleanupCommand(), ['--apply' => true]))->toBe(0);
 
     expect(evoDescription($natura))->toBe("Lien vers l'emplacement")
         ->and(evoDescription($hilaire))->toBe("Premier paragraphe.\n\nSecond paragraphe.")
-        ->and(evoDescription($propre))->toBe("Déjà propre.\nAvec un retour.");
+        ->and(evoDescription($clean))->toBe("Déjà propre.\nAvec un retour.");
 
     Artisan::call(evoCleanupCommand(), ['--apply' => true]);
     expect(evoDescription($natura))->toBe("Lien vers l'emplacement")
@@ -52,9 +52,9 @@ it('L7a la commande avec --apply retire les \\ accumulés et transforme les \\n 
 });
 
 it('L7a la fiche programme affiche les retours à la ligne en <br> et les liens cliquables dans un nouvel onglet', function () {
-    $projet = makeProjet(['projet_description' => "Ligne une\nLigne deux\nPlan : https://www.google.com/maps/place/Montpellier et vidéo https://youtu.be/abc123"]);
+    $program = makeProgram(['projet_description' => "Ligne une\nLigne deux\nPlan : https://www.google.com/maps/place/Montpellier et vidéo https://youtu.be/abc123"]);
 
-    $content = (string) $this->actingAs(makeAdmin())->get("/programme/show/$projet->projet_titre_key")->assertOk()->getContent();
+    $content = (string) $this->actingAs(makeAdmin())->get("/programme/show/$program->projet_titre_key")->assertOk()->getContent();
 
     expect($content)->toMatch('#Ligne une\s*<br\s*/?>\s*Ligne deux#');
     foreach (['https://www.google.com/maps/place/Montpellier', 'https://youtu.be/abc123'] as $url) {
@@ -64,9 +64,9 @@ it('L7a la fiche programme affiche les retours à la ligne en <br> et les liens 
 });
 
 it('L7a la fiche programme échappe le HTML saisi dans la description', function () {
-    $projet = makeProjet(['projet_description' => "Intro <script>alert('xss')</script>\n<img src=x onerror=alert(2)> https://exemple.test/\"onmouseover=\"alert(3) javascript:alert(4)"]);
+    $program = makeProgram(['projet_description' => "Intro <script>alert('xss')</script>\n<img src=x onerror=alert(2)> https://exemple.test/\"onmouseover=\"alert(3) javascript:alert(4)"]);
 
-    $content = (string) $this->actingAs(makeAdmin())->get("/programme/show/$projet->projet_titre_key")->assertOk()->getContent();
+    $content = (string) $this->actingAs(makeAdmin())->get("/programme/show/$program->projet_titre_key")->assertOk()->getContent();
 
     expect($content)->not->toContain("<script>alert('xss')</script>")
         ->not->toContain('<img src=x')
@@ -77,9 +77,9 @@ it('L7a la fiche programme échappe le HTML saisi dans la description', function
 });
 
 it('L7a une description encodée à l\'ancienne s\'affiche sans double encodage', function () {
-    $projet = makeProjet(['projet_description' => 'Vue d&#039;angle &amp; jardin']);
+    $program = makeProgram(['projet_description' => 'Vue d&#039;angle &amp; jardin']);
 
-    $response = $this->actingAs(makeAdmin())->get("/programme/show/$projet->projet_titre_key")->assertOk();
+    $response = $this->actingAs(makeAdmin())->get("/programme/show/$program->projet_titre_key")->assertOk();
 
     expect((string) $response->getContent())->not->toContain('&amp;#039;')->not->toContain('&amp;amp;')
         ->and(pageText($response))->toContain("Vue d'angle & jardin");

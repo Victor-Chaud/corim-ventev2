@@ -10,7 +10,8 @@
             	<input size="10" type="text" class="datepicker" id="datepicker_{{ $option->iddlot }}_askoption" value="{{ $option->date }}" />
                 <input type="hidden" type="text" class="datepickeralt" value="" />
             </td>
-            @else<td align="center">{{ $option->date }}</td>@endif<td align="center">{{ $option->projet_titre }}</td><td align="center">{{ $option->projet_lieu }}</td><td align="center">{{ $option->numero }}</td><td align="center">{{ $option->nom }}</td><td align="center">{{ $option->adresse }}</td><td align="center">{{ $option->name }}</td><td align="center">@if ($option->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $option->iddlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="valider_ask_option btn btn-primary btn-xs"><b>VALIDER</b></a><br /><b><a rel="{{ $option->iddlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="rejeter_ask_option btn btn-warning btn-xs">REJETER</a></b></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 9 : 8 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($option->message) }}</td></tr>@endforeach</tbody></table>@else
+            @else<td align="center">{{ $option->date }}</td>@endif<td align="center">{{ $option->projet_titre }}</td><td align="center">{{ $option->projet_lieu }}</td><td align="center">{{ $option->numero }}</td><td align="center">{{ $option->nom }}</td><td align="center">{{ $option->adresse }}</td><td align="center">{{ $option->name }}</td><td align="center">@if ($option->message != '')<a href="javascript:void(0)" class="see_sms btn btn-primary btn-xs">Message</a>@endif</td>@if ($admin)<td align="center"><a rel="{{ $option->iddlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="valider_ask_option btn btn-primary btn-xs"><b>VALIDER</b></a><br /><b><a rel="{{ $option->iddlot }}-{{ $option->iduser }}" href="javascript:void(0)" class="rejeter_ask_option btn btn-warning btn-xs">REJETER</a></b></td>@endif</tr><tr class="hide"><td colspan="{{ $admin ? 9 : 8 }}" class="sms">{{ \App\Http\Controllers\Workflow\PagesController::message($option->message) }}</td></tr>@endforeach</tbody></table>
+{{ $rows->links() }}@else
     <div class="alert alert-info">Aucune demande d'option en cours de validation</div>
 @endif
 <div style="display:none">
@@ -21,7 +22,7 @@
         <table align="center" cellpadding="10">
         	<tr>
             	<td align="center">Laisser un message<br />au promoteur :</td>
-                <td align="center"><textarea name="f_confirm_ask_option_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\MessagesAutoController::texte('option_validee') }}</textarea></td>
+                <td align="center"><textarea name="f_confirm_ask_option_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\AutoMessagesController::text('option_validee') }}</textarea></td>
             </tr>
             <tr>
             	<td colspan="2" align="center">
@@ -40,7 +41,7 @@
         <table align="center" cellpadding="10">
         	<tr>
             	<td align="center">Laisser un message<br />au promoteur :</td>
-                <td align="center"><textarea name="f_refuser_ask_option_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\MessagesAutoController::texte('option_refusee') }}</textarea></td>
+                <td align="center"><textarea name="f_refuser_ask_option_sms" cols="60" rows="10">{{ \App\Http\Controllers\Evolutions\AutoMessagesController::text('option_refusee') }}</textarea></td>
             </tr>
             <tr>
             	<td colspan="2" align="center">

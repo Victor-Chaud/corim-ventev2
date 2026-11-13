@@ -18,9 +18,9 @@ class ApiKeyController extends Controller
     public function generate(int $id): RedirectResponse
     {
         $client = $this->client($id);
-        $retour = redirect('/gestion_promoteurs/modifier/'.$id);
+        $redirect = redirect('/gestion_promoteurs/modifier/'.$id);
         if ((string) $client->acces !== '0') {
-            return $retour->with('cle_erreur', 'Aucune clé API ne peut être attribuée à un compte admin.');
+            return $redirect->with('api_key_error', 'Aucune clé API ne peut être attribuée à un compte admin.');
         }
         $key = Str::random(48);
         DB::transaction(function () use ($id, $key) {
@@ -28,7 +28,7 @@ class ApiKeyController extends Controller
             DB::table('api_keys')->insert(['user_id' => $id, 'hash' => hash('sha256', $key), 'created_at' => now()]);
         });
 
-        return $retour->with('cle_api', $key)->with('cle_message', 'Une nouvelle clé API a été générée. L\'ancien lien ne fonctionne plus.');
+        return $redirect->with('api_key', $key)->with('api_key_message', 'Une nouvelle clé API a été générée. L\'ancien lien ne fonctionne plus.');
     }
 
     public function revoke(int $id): RedirectResponse
@@ -36,7 +36,7 @@ class ApiKeyController extends Controller
         $this->client($id);
         $this->revokeAll($id);
 
-        return redirect('/gestion_promoteurs/modifier/'.$id)->with('cle_message', 'La clé API a été révoquée.');
+        return redirect('/gestion_promoteurs/modifier/'.$id)->with('api_key_message', 'La clé API a été révoquée.');
     }
 
     public function documentation(): View

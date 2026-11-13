@@ -15,6 +15,8 @@
     <link type="text/css" href="/medias/css/jquery.jscrollpane.css" rel="stylesheet" media="all" />
     <link href="/medias/tablesorter/css/theme.green.css" rel="stylesheet" type="text/css" />
     <link href="/medias/css/global.css" rel="stylesheet" type="text/css" />
+    <link href="/medias/css/dark-mode.css" rel="stylesheet" type="text/css" />
+    <script src="/medias/js/dark-mode.js"></script>
     <script src="/vendor/jquery/jquery-3.7.1.min.js"></script>
     <script src="/medias/js/jquery.browser.js"></script>
 	<script src="/vendor/bootstrap-3.4.1/js/bootstrap.min.js"></script>

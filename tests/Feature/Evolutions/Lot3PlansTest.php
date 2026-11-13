@@ -10,25 +10,25 @@ function evoPdf(string $name, string $content = '%PDF-1.4 plan'): UploadedFile
     return UploadedFile::fake()->createWithContent($name, $content);
 }
 
-dataset('noms_de_plan', ['A12.pdf', 'plan-A12.pdf', 'Plan A12.pdf', 'plan.A12.pdf', 'PLAN_a12.PDF', 'Plan-A12.pdf']);
+dataset('plan_names', ['A12.pdf', 'plan-A12.pdf', 'Plan A12.pdf', 'plan.A12.pdf', 'PLAN_a12.PDF', 'Plan-A12.pdf']);
 
 it('L3 l\'envoi en masse range le plan sous plan-{référence}.pdf quel que soit le nom du fichier', function (string $name) {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
-    makeLot($projet->projet_id, ['numero' => 'A1']);
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
+    makeLot($program->projet_id, ['numero' => 'A1']);
 
     $this->actingAs(makeAdmin())->post("/ajouter_plan/show/$key", ['plan_upload' => [evoPdf($name)]])->assertOk();
 
     $disk = Storage::disk('programmes');
     $disk->assertExists("$key/plans/plan-A12.pdf");
     expect($disk->files("$key/plans"))->toBe(["$key/plans/plan-A12.pdf"]);
-})->with('noms_de_plan');
+})->with('plan_names');
 
 it('L3 l\'envoi un par un (uploadify) applique la même correspondance', function (string $name) {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
 
     $response = $this->actingAs(makeAdmin())->post("/ajouter_plan/uploadify/$key", ['Filedata' => evoPdf($name)]);
 
@@ -37,10 +37,10 @@ it('L3 l\'envoi un par un (uploadify) applique la même correspondance', functio
 })->with(['A12.pdf', 'Plan A12.pdf', 'plan.A12.pdf']);
 
 it('L3 un fichier qui ne correspond à aucun lot est refusé avec « aucun lot » et n\'est pas stocké', function () {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
-    $other = makeProjet();
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
+    $other = makeProgram();
     makeLot($other->projet_id, ['numero' => 'A99']);
     $admin = makeAdmin();
 
@@ -56,9 +56,9 @@ it('L3 un fichier qui ne correspond à aucun lot est refusé avec « aucun lot �
 });
 
 it('L3 un nouvel envoi écrase le plan existant du lot', function () {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
     $disk = Storage::disk('programmes');
     $disk->put("$key/plans/plan-A12.pdf", '%PDF-1.4 ancien');
 
@@ -69,9 +69,9 @@ it('L3 un nouvel envoi écrase le plan existant du lot', function () {
 });
 
 it('L3 le plan envoyé est servi au chemin public de l\'API et signalé OK sur la page', function () {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
     $admin = makeAdmin();
 
     $this->actingAs($admin)->post("/ajouter_plan/show/$key", ['plan_upload' => [evoPdf('plan.A12.pdf', '%PDF-1.4 public')]]);
@@ -84,9 +84,9 @@ it('L3 le plan envoyé est servi au chemin public de l\'API et signalé OK sur l
 });
 
 it('L3 un fichier non PDF reste refusé même s\'il correspond à un lot', function () {
-    $projet = makeProjet();
-    $key = $projet->projet_titre_key;
-    makeLot($projet->projet_id, ['numero' => 'A12']);
+    $program = makeProgram();
+    $key = $program->projet_titre_key;
+    makeLot($program->projet_id, ['numero' => 'A12']);
 
     $this->actingAs(makeAdmin())->post("/ajouter_plan/show/$key", ['plan_upload' => [
         UploadedFile::fake()->createWithContent('A12.php', '<?php echo 1;'),

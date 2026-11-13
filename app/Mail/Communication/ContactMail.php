@@ -17,6 +17,6 @@ class ContactMail extends Mailable
 
     public function content(): Content
     {
-        return new Content(text: 'communication.mail.texte', with: ['texte' => strip_tags(self::HTML)], htmlString: self::HTML);
+        return new Content(text: 'communication.mail.text', with: ['text' => strip_tags(self::HTML)], htmlString: self::HTML);
     }
 }

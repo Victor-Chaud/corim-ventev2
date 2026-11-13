@@ -70,8 +70,6 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
-    'emailing_per_minute' => env('MAIL_EMAILING_PER_MINUTE', 30),
-
     'corim' => [
         'address' => env('MAIL_CORIM_ADDRESS', 'contact@corim-promotion.com'),
     ],

@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\DB;
 
 class Access
 {
-    public static function canSeeProgramme(User $user, int $projetId): bool
+    public static function canSeeProgram(User $user, int $programId): bool
     {
-        return $user->isAdmin() || DB::table('acces')->where('iduser', $user->id)->where('idprojet', $projetId)->exists();
+        return $user->isAdmin() || DB::table('acces')->where('iduser', $user->id)->where('idprojet', $programId)->exists();
     }
 
     public static function canSeeLot(User $user, int $lotId): bool

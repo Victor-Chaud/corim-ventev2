@@ -4,8 +4,8 @@
 <div class="page-header">
   <h1>Nous contacter</h1>
 </div>
-@if ($erreurs)
-<div class="alert alert-warning" role="alert">@foreach ($erreurs as $erreur){!! $erreur !!}@endforeach</div>
+@if ($formErrors)
+<div class="alert alert-warning" role="alert">@foreach ($formErrors as $error){!! $error !!}@endforeach</div>
 @endif
 @if ($valid)
 <div class="alert alert-success" role="alert">{{ $valid }}</div>
@@ -20,8 +20,8 @@
         <label for="programme">Programme concerné</label>
         <select name="programme" id="programme" class="form-control">
               <option value="0">Choisir un programme</option>
-              @foreach ($programmes as $programme)
-<option value="{{ html_entity_decode((string) $programme->projet_titre, ENT_QUOTES) }}">{{ \App\Http\Controllers\Communication\SafeHtml::clean($programme->projet_titre) }}</option>
+              @foreach ($programs as $program)
+<option value="{{ html_entity_decode((string) $program->projet_titre, ENT_QUOTES) }}">{{ \App\Http\Controllers\Communication\SafeHtml::clean($program->projet_titre) }}</option>
               @endforeach
           </select>
     </div>

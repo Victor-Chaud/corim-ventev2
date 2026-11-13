@@ -51,11 +51,6 @@ $(document).ready(function(){
 	  $('#'+box_privileges).toggle();
   });
   
-  $('#vider_la_liste').click(function(){
-	  $("#keyword_select").val('');
-	  $("#callback_list_client").empty();
-  });
-  
   $('.file').click(function(){
   	var url = $(this).attr('rel');
 	$.ajax({
@@ -76,7 +71,7 @@ $(document).ready(function(){
   });
   
   $(".delete_denonciation").click(function(){
-  	var denonciation = $(this).attr('rel');
+  	var referral = $(this).attr('rel');
 	$.confirm({
 		'title'		: 'Supprimer une dénonciation',
 		'message'	: 'Vous êtes sur le point de supprimer cette dénonciation.<br />Continuez ?',
@@ -87,7 +82,7 @@ $(document).ready(function(){
 					$.ajax({
 						  type: "POST",
 						  url: SITE+"index.php/json/DeleteDenonciation/",
-						  data: {denonciation:denonciation},
+						  data: {denonciation:referral},
 						  success: function(callback){
 							 var call = eval('(' + callback + ')');
 							 if(call.errors==1){
@@ -141,82 +136,6 @@ $(document).ready(function(){
 		}
 	});
 	return false;
-  });
-  
-  $('#keyword_select_push').click(function(){
-	
-	$("#search-by-keyword .alert").remove();
-  	
-	var keyword1 = $('#keyword_select1').val();
-	var keyword2 = $('#keyword_select2').val();
-	var keyword3 = $('#keyword_select3').val();
-	
-	if(keyword1 != '' || keyword2 != '' || keyword3 != ''){
-		$.ajax({
-		  type: "POST",
-		  url: SITE+"index.php/json/SearchClientEmailing/",
-		  data: {keyword1:keyword1,keyword2:keyword2,keyword3:keyword3},
-		  success: function(callback){
-			 var call = eval('(' + callback + ')');
-			 if(call.errors==1){
-				var response = call.call;
-				var modulo = 0;
-				var color = '#FFF';
-				var html ='<table id="f_recherche_client_result" cellpadding="2" cellspacing="2" border="1" style="font-size:12px"><tr><td colspan="7" align="center"><a href="javascript:void(0);" id="valider_la_selection" class="btn btn-primary btn-xs">VALIDER LA SELECTION</a></td></tr>';
-				$.each(response, function(index, item){
-					html += 
-					'<tr>' +
-						'<td valign="middle" rowspan="2"><input type="checkbox" name="myclient[]" value="'+item.email+'" class="myclient" /></td>' +
-						'<td valign="top"><b>DATE</b><br />'+item.date+'</td>' +
-						'<td valign="top"><b>SOURCE</b><br />'+item.source+'</td>' +
-						'<td valign="top"><b>PROJET</b><br />'+item.projet+'</td>' +
-						'<td valign="top"><b>CONTACT</b><br />'+item.civilite+' '+item.nom+'</td>' +
-						'<td valign="top"><b>ADRESSE</b><br />'+item.adresse+'</td>' +
-						'<td valign="top"><b>TEL.</b><br />'+item.tel+'</td>' +
-					'</tr>' +
-					'<tr style="background:'+color+';color:#3E3D40">' +
-						'<td valign="top"><b>E-MAIL</b><br />'+item.email+'</td>' +
-						'<td valign="top"><b>TYPE ACHAT</b><br />'+item.type_achat+'</td>' +
-						'<td valign="top"><b>TYPE LOGEMENT</b><br />'+item.type_logement+'</td>' +
-						'<td valign="top"><b>BUDGET</b><br />'+item.budget+'</td>' +
-						'<td valign="top"><b>OBSERVATION</b><br />'+item.observation+'</td>' +
-						'<td valign="top"><b>REPONSE</b><br />'+item.reponse+'</td>' +
-					'</tr>'
-					;
-					modulo++;
-				});
-				html += '</table>';
-				$.colorbox({
-					innerWidth:980,
-					innerHeight:580,
-					html:html,
-					onComplete: function(){
-						$('#valider_la_selection').click(function(){
-						  var data = $('.myclient:checked');
-						  var html='';
-						  var count = 0;
-						  $.each(data, function(index, item){
-							  if(count == 0){
-							  	html += item.value;
-							  }else{
-							  	html += ';'+item.value;
-							  }
-							  count++;
-						  });
-						  $("#callback_list_client").html('<b>'+count+' personne(s) dans la liste</b>');
-						  $("#keyword_select").val(html);
-						  $.fn.colorbox.close();
-						});
-					}
-				  });
-			 }else if(call.errors==0){
-				$("#search-by-keyword").append('<div class="alert alert-warning">Aucun résultat pour la recherche.</div>');
-			 }
-		  }
-		});
-	}else{
-		$("#search-by-keyword").append('<div class="alert alert-warning">Veuillez saisir au moins un mot clé pour effectuer une recherche de client.</div>');
-	}
   });
   
   $('.push-act').click(function(){
@@ -283,89 +202,10 @@ $(document).ready(function(){
 	  
   });
 	
-  $("#f_recherche_client_submit").click(function(){
-	  
-	  $('#f_recherche_client_result tbody').empty();
-	  $('.alert').remove();
-	  
-	  var data = $("#f_recherche_client").serialize();
-	  
-	  $.ajax({
-		type: "POST",
-		url: SITE+"index.php/json/SearchClients/",
-		data: data,
-		success:function(callback){
-			var call = eval('(' + callback + ')');
-			if(call.errors==1){
-				var response = call.call;
-				var modulo = 0;
-				var color = '#FFF';
-				$.each(response, function(index, item){
-					$('#f_recherche_client_result tbody').append(
-					'<tr>' +
-						'<td>'+item.date+'</td>' +
-						'<td>'+item.source+'</td>' +
-						'<td>'+item.projets+'</td>' +
-						'<td>'+item.civilite+' '+item.nom+'</td>' +
-						'<td>'+item.adresse+'</td>' +
-						'<td>'+item.tel+'</td>' +
-						'<td><a href="mailto:'+item.email+'">'+item.email+'</a></td>' +
-						'<td>'+item.type_achat+'</td>' +
-						'<td>'+item.type_logement+'</td>' +
-						'<td>'+item.budget+'</td>' +
-						'<td align="center"><a href="javascript:void(0)" class="see_sms2 btn btn-primary btn-xs" rel="'+item.idclient+'">Message</a><a href="'+SITE+'gestion_clients/edition_client/'+item.idclient+'" class="btn btn-primary btn-xs">MODIFIER</a><br /><a class="supprimer_client btn btn-danger btn-xs" href="'+SITE+'gestion_clients/supprimer_client/'+item.idclient+'"><b>SUPPRIMER</b></a></td>' +
-					'</tr>'+
-					'<tr class="hide" id="see_sms_'+item.idclient+'">'+
-						'<td colspan="11">'+
-							'<p><b>OBSERVATION</b><br />'+item.observation+'</p>' +
-							'<p><b>REPONSE</b><br />'+item.reponse+'</p>' +
-						'</td>'+
-					'</tr>'
-					);
-					modulo++;
-				});
-				$(".see_sms2").click(function(){
-				  var target = $(this).attr('rel');
-				  $("#see_sms_"+target).toggleClass('filtered hide');
-				  return false; 
-				});
-				$('.supprimer_client').click(function(e){
-					e.preventDefault();
-					var url = $(this).attr('href');
-					$.confirm({
-						'title'		: 'Supprimer ce client',
-						'message'	: 'Vous êtes sur le point de supprimer le client.<br />Continuez ?',
-						'buttons'	: {
-							'Oui'	: {
-								'class'	: 'blue',
-								'action': function(){
-									window.document.location = url;
-								}
-							},
-							'Non'	: {
-								'class'	: 'gray',
-								'action': function(){return false;}
-							}
-						}
-					});
-					return false;
-				});
-				$(".tablesorter-green").trigger("update");
-				$(".tablesorter-green").trigger("sorton");
-			}else if(call.errors==0){
-				$("#f_recherche_client_result").before('<div class="alert alert-warning">Veuillez saisir un mot clé pour effectuer une recherche</div>');
-			}else if(call.errors==2){
-				$("#f_recherche_client_result").before('<div class="alert alert-warning">La recherche n\'a retourné aucun résultat</div>');
-			}
-		}
-	})
-	return false;
-  });
-  
   
   $(".delete_lot").click(function(){
 	 var data = $(this).attr("rel").split("-");
-	 var idprojet = data[0];
+	 var programId = data[0];
 	 var idlot = data[1];
 	 $.confirm({
 		'title'		: 'Supprimer ce lot',
@@ -377,7 +217,7 @@ $(document).ready(function(){
 					$.ajax({
 					  type: "POST",
 					  url: SITE+"index.php/json/SupprimerLot/",
-					  data: {idprojet:idprojet,idlot:idlot},
+					  data: {idprojet:programId,idlot:idlot},
 					  success: function(callback){
 						 var call = eval('(' + callback + ')');
 						 if(call.errors==1){
@@ -422,7 +262,7 @@ $(document).ready(function(){
   
   $('.annuler_vente').click(function(){
   	var data = $(this).attr('rel').split('-');
-	var vendeur = data[1];
+	var seller = data[1];
 	var idlot = data[0];
 	$.confirm({
 		'title'		: 'Annuler la vente',
@@ -439,7 +279,7 @@ $(document).ready(function(){
 						onComplete: function(){
 							$(".call").empty();
 							$("#annuler_la_vente_idlot").val(idlot);
-							$("#annuler_la_vente_vendeur").val(vendeur);
+							$("#annuler_la_vente_vendeur").val(seller);
 						},onClosed: function(){
 							window.document.location = SITE+"ventes";
 						}
@@ -1449,24 +1289,6 @@ $(document).ready(function(){
 	return false;
   });
   
-  $(".deleteEvent").click(function(){
-  	var id = $(this).attr('rel');
-	var currentLocation =  document.location.href;
-	$.ajax({
-		type: "POST",
-		url: SITE+"index.php/json/DeleteEvent/",
-		data: {idevent : id},
-		success:function(callback){
-			var call = eval('(' + callback + ')');
-			if(call.errors==1){
-			 	window.document.location = SITE+"agenda/classique";
-			}else{
-				return false;
-			}
-		}
-	})
-  });
-  
   $("#submit_f_new_prospect").click(function(){
 	  $("#denonciations_call").empty();
 	  var data = $("#f_new_prospect").serialize();
@@ -1490,34 +1312,6 @@ $(document).ready(function(){
 	return false;
   });
   
-  $(".submitFormChoiceDate").click(function(){
-	  var Month = $("#selectChoiceMonth").val();
-	  var Year = $("#selectChoiceYear").val();
-	  window.document.location = SITE+"agenda/classique/"+Month+"/"+Year;
-  });
-
-  $(".choiceDate").click(function(){
-	  $(".choiceDate").css("display","none");
-	  $(".boxChoiceDate").css("display","block");
-	  $(".choiceAllDate").css("display","block");
-  });
-  
-  $(".choiceAllDate").click(function(){
-  	window.document.location = SITE+"agenda/classique";
-  });
-
-  $('#calendrier li a').click(function(){
-	  var CalContent=$(this).next("span").html();
-	  if(CalContent!=""){
-		  $.colorbox({
-			  innerWidth:740,
-			  innerHeight:580,
-			  html:CalContent
-		  });
-	  }
-	  return false;
-  });
-
   $(".checkboxvide").bind('click',function(){
 			$(this).addClass("checkboxplein");
 			$(this).removeClass("checkboxvide");
@@ -1696,12 +1490,12 @@ function Recherche(){
 			var callback = eval('(' + strCallback + ')');
 			
 			if(callback.errors==0){
-				var response_recherche='';
+				var search_response='';
 					for (var i = 0 ;i < callback.response.length;i ++)
 					{
-				var response_recherche= response_recherche +'nom: '+callback.response[i].nom+'<br />ville: '+callback.response[i].ville+'<br />type: '+callback.response[i].type+'<br />prix: '+callback.response[i].prix+'<br /><br/>';
+				var search_response= search_response +'nom: '+callback.response[i].nom+'<br />ville: '+callback.response[i].ville+'<br />type: '+callback.response[i].type+'<br />prix: '+callback.response[i].prix+'<br /><br/>';
 					}
-				$(".reponse_recherche").html(response_recherche);
+				$(".reponse_recherche").html(search_response);
 				$(".reponse_recherche").css("display","block");
 			}
 			else {
@@ -1713,25 +1507,25 @@ function Recherche(){
 	return false;
 }
 
-function Recherche_Ville(){
+function Search_City(){
 	var data = $("#form-recherche").serializeArray();
 	$.ajax({
 		type: "POST",
 		url: SITE+"index.php/json/Recherche_Ville/",
 		data: data,
 		success:function(strCallback){
-			var callback_ville = eval('(' + strCallback + ')');
-			if(callback_ville.errors==0){
-				var villes='villes: ';
-				for (var i = 0 ;i < callback_ville.response.length;i ++)
+			var city_callback = eval('(' + strCallback + ')');
+			if(city_callback.errors==0){
+				var cities='villes: ';
+				for (var i = 0 ;i < city_callback.response.length;i ++)
 					{
-						for(var y = 0;y < callback_ville.response[i].length;y ++)
+						for(var y = 0;y < city_callback.response[i].length;y ++)
 							{
-								var ville = ' '+callback_ville.response[i][y].ville+'<input type="checkbox" name="ville[]" value="'+ callback_ville.response[i][y].ville+'" onclick="Recherche()"/><br />';
-								var villes = villes.concat(ville);
+								var city = ' '+city_callback.response[i][y].ville+'<input type="checkbox" name="ville[]" value="'+ city_callback.response[i][y].ville+'" onclick="Recherche()"/><br />';
+								var cities = cities.concat(city);
 							}
 					}
-				$(".villes").html(villes);
+				$(".villes").html(cities);
 				$(".villes").css("display","block");
 			}
 			else {
@@ -1769,18 +1563,18 @@ function HideToolbar(){
 	return false;
 }
 
-function verif_form_messagerie(){
+function confirm_delete_messages(){
 	var InputValue = $("#delete_message").val();
 	if(InputValue!=""){
 		var countMessage = $(".checkboxplein").length;
-		var pluriel = '';
+		var plural = '';
 		var message = ' '+countMessage+' message';
 		if(countMessage>1){
-			pluriel = 's';
+			plural = 's';
 		}else{
 			message = ' message';
 		}
-		if(confirm('Voulez-vous supprimer ce'+pluriel+message+pluriel+' ?')){
+		if(confirm('Voulez-vous supprimer ce'+plural+message+plural+' ?')){
 			document.getElementById('form_messagerie').submit();
 		}
 	}else{
@@ -1788,18 +1582,18 @@ function verif_form_messagerie(){
 	}
 }
 
-function verif_form_allmessage(){
+function confirm_delete_all_messages(){
 	
 	
 		var countMessage = $(".checkboxvide").length;
-		var pluriel = '';
+		var plural = '';
 		var message = ' '+countMessage+' message';
 		if(countMessage>1){
-			pluriel = 's';
+			plural = 's';
 		}else{
 			message = ' message';
 		}
-		if(confirm('Voulez-vous supprimer ce'+pluriel+message+pluriel+' ?')){
+		if(confirm('Voulez-vous supprimer ce'+plural+message+plural+' ?')){
 			document.getElementById('form_allmessages').submit();
 		}
 	

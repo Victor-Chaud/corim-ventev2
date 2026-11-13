@@ -17,10 +17,10 @@ Les tests négatifs (refus, absence d'effet) vérifient d'abord que la route ré
 |---|---|---|---|---|---|
 | A | public-api | 38/38 | 38 | ✅ | `tests/Feature/PublicApi/` |
 | A | auth-users-privileges | 29/29 | 29 | ✅ | `tests/Feature/Auth/` |
-| A | programmes-lots | 32/32 + C16bis | 33 | ✅ | `tests/Feature/ProgrammesLots/` |
+| A | programmes-lots | 32/32 + C16bis | 33 | ✅ | `tests/Feature/ProgramsLots/` |
 | B | workflow | 34/34 (C29 en 2 tests) | 35 | ✅ | `tests/Feature/Workflow/` |
 | B | clients-prospects | 22/22 + C21bis | 23 | ✅ | `tests/Feature/ClientsProspects/` |
-| B | promoteurs | 32/32 | 32 | ✅ | `tests/Feature/Promoteurs/` |
+| B | promoteurs | 32/32 | 32 | ✅ | `tests/Feature/Prescribers/` |
 | C | communication | 30/30 | 30 | ✅ | `tests/Feature/Communication/` |
 | C | public | 30/31 (C31 ⏳) | 30 | ✅ | `tests/Feature/Public/` |
 
@@ -29,8 +29,8 @@ Les 7 échecs précédents (Auth C11, C12, C13, C24, C26, C29, Workflow C30) att
 ## Ajouts de cette passe
 
 - **clients-prospects C21bis** (`ClientsProspects/EncodingTest.php`) : `ajouter_client`, `edition_client` et `AddProspect` stockent `htmlspecialchars(ENT_QUOTES)` une seule fois (jamais `&amp;#039;`), un POST de texte déjà encodé ne double pas, et les pages affichent le texte décodé.
-- **programmes-lots C16bis** (`ProgrammesLots/AdminPagesTest.php`, déjà présent et vérifié) : `ajouter_lot` et l'import CSV encodent `'` et `&` comme `AddAppartement` (`model.php:2228`), `ville` = `projet_lieu` encodé une fois, `gerer_lots/modifier` enregistre le texte tel que saisi (`UpdateAppartement`, `model.php:2258`), formulaire sans `&amp;amp;`.
-- **communication** : `AccessTest` (C1, C2, C29, C30), `MessagerieTest` (C3-C11), `EnvoyerTest` (C12-C13), `EmailingTest` (C14-C19), `EmailsFlashInfoTest` (C20-C25), `ContactAgendaTest` (C26-C28).
+- **programmes-lots C16bis** (`ProgramsLots/AdminPagesTest.php`, déjà présent et vérifié) : `ajouter_lot` et l'import CSV encodent `'` et `&` comme `AddAppartement` (`model.php:2228`), `ville` = `projet_lieu` encodé une fois, `gerer_lots/modifier` enregistre le texte tel que saisi (`UpdateAppartement`, `model.php:2258`), formulaire sans `&amp;amp;`.
+- **communication** : `AccessTest` (C1, C2, C29, C30), `MessagingTest` (C3-C11), `SendTest` (C12-C13), `EmailsFlashInfoTest` (C20-C25), `ContactAgendaTest` (C26, C28). C14-C19 (emailing) et C27 (agenda) supprimés le 2026-11-12 (lot 5).
 - **public** : `DashboardTest` (C1-C9, C30), `LayoutTest` (C10-C15, C19), `PagesTest` (C16-C18, C20-C29).
 - `dashboardCounters()` déplacé de `Workflow/PagesTest.php` vers `tests/Helpers/public.php` (partagé avec Public).
 
@@ -95,7 +95,7 @@ Relevé du 2026-10-29 sur la copie locale de la base de prod (dump du 2026-10-27
 - public C31 : comparaison visuelle (captures 1280 px et 375 px) avec l'ancienne application : à faire au recettage.
 - public C29 / public-api C35 : redirection http→https (vhost Apache). Pest vérifie seulement que `/application`, `/system`, `/modules`, `*.csv`, `.env` et les logs ne sont pas servis.
 - Absence d'exécution PHP par Apache dans le dossier d'upload : configuration du vhost, à contrôler au déploiement.
-- communication C16 : le débit réel et les réessais SMTP dépendent du worker de file et du fournisseur SMTP (Q5). Pest ne vérifie que la configuration des jobs.
+- communication C16 : sans objet depuis le 2026-11-12 (plus d'envoi en file : emailing et destinataire « Client » de `/message/envoyer` retirés).
 
 ## Contestations
 
@@ -107,18 +107,20 @@ Relevé du 2026-10-29 sur la copie locale de la base de prod (dump du 2026-10-27
 
 ## Évolutions (novembre 2026)
 
-Tests d'acceptation dans `tests/Feature/Evolutions/`, écrits d'après `plan-action.md` et `ameliorations.md` (sections 2 à 4). Lot 5 reporté : aucun test. Dernier passage (3 novembre 2026) : **84/84**.
+Tests d'acceptation dans `tests/Feature/Evolutions/`, écrits d'après `plan-action.md` et `ameliorations.md` (sections 2 à 4). Dernier passage (3 novembre 2026) : **84/84**.
+
+Lot 5 : fiches clients, agenda et emailing retirés le 2026-11-12, données gardées en base (tables `clients`, `agenda`, `emailing`) ; leurs tests sont remplacés par `RemovedFeaturesTest.php` (404 sur les anciennes URL). `composer verify` : Pest 406/406.
 
 | Lot | Fichier | Tests | Résultat |
 |---|---|---|---|
-| 1. Double clic sur Valider | `Lot1DoubleClicTest.php` | 7 | 7/7 |
+| 1. Double clic sur Valider | `Lot1DoubleClickTest.php` | 7 | 7/7 |
 | 2. Import Excel (grille de prix) | `Lot2ImportExcelTest.php` | 8 | 8/8 |
 | 3. Nom des plans | `Lot3PlansTest.php` | 13 | 13/13 |
-| 4. API prescripteur | `Lot4ApiPrescripteurTest.php` | 33 | 33/33 |
-| 6. Rapidité sur téléphone (`/denonciations`) | `Lot6DenonciationsTest.php` | 2 | 2/2 |
+| 4. API prescripteur | `Lot4PrescriberApiTest.php` | 33 | 33/33 |
+| 6. Rapidité sur téléphone (`/denonciations`) | `Lot6ReferralsTest.php` | 2 | 2/2 |
 | 7a. Description des programmes | `Lot7aDescriptionTest.php` | 5 | 5/5 |
 | 7b. Messages automatiques et signature | `Lot7bMessagesTest.php` | 9 | 9/9 |
-| 7c. Suivi des refus | `Lot7cRefusTest.php` | 7 | 7/7 |
+| 7c. Suivi des refus | `Lot7cRejectionsTest.php` | 7 | 7/7 |
 
 Non testable en Pest, à vérifier à la main ou à la recette :
 - lot 1 : bouton désactivé dès le premier clic et réactivé en cas d'erreur (JS de `global.js`), sur tous les boutons de validation, de refus et d'annulation ;

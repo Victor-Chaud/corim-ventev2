@@ -67,15 +67,15 @@ it('C20 /app sans session : page DISPONIBILITES, cases T1-T6, select budget à 6
 });
 
 it('C21 /app?project= soumet firstsearch?action=app qui renvoie MyFirstCallback({...}) sans var_dump', function () {
-    $projet = makeProjet(['projet_titre' => 'APP TEST']);
-    makeLot($projet->projet_id, ['type' => 'T3', 'numero' => 'A 12']);
-    $page = (string) $this->get('/app?project='.$projet->projet_id)->assertOk()->getContent();
+    $program = makeProgram(['projet_titre' => 'APP TEST']);
+    makeLot($program->projet_id, ['type' => 'T3', 'numero' => 'A 12']);
+    $page = (string) $this->get('/app?project='.$program->projet_id)->assertOk()->getContent();
     expect($page)->toMatch('#<script src="[^"]*/medias/js/app\.js"></script>#');
 
     $js = file_get_contents(public_path('medias/js/app.js'));
     expect($js)->toContain('getUrlVars()["project"]')->toContain('index.php/firstsearch')->toContain("jsonpCallback: 'MyFirstCallback'");
 
-    $response = $this->get('/index.php/firstsearch?action=app&projet='.$projet->projet_id.'&budget=0&typologie[]=T3');
+    $response = $this->get('/index.php/firstsearch?action=app&projet='.$program->projet_id.'&budget=0&typologie[]=T3');
     $body = (string) $response->getContent();
     expect($body)->not->toContain('array(')->not->toContain('string(');
     $data = json_decode(jsonpUnwrap($body, 'MyFirstCallback'), true);

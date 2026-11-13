@@ -16,15 +16,15 @@ class JsonController extends Controller
 {
     public const SEPARATOR = '<div class="separator"></div>';
 
-    private const DEMANDES = [
+    private const REQUEST_TYPES = [
         'option' => [
-            'champ' => 'id_option', 'table' => 'd_options', 'statut' => 'opt',
-            'sujet' => "Vous avez une demande d'option en attente",
+            'field' => 'id_option', 'table' => 'd_options', 'status' => 'opt',
+            'subject' => "Vous avez une demande d'option en attente",
             'phrase' => "Vous avez reçu un nouveau message concernant une demande d'option",
         ],
         'reservation' => [
-            'champ' => 'id_reserver', 'table' => 'd_reservations', 'statut' => 'res',
-            'sujet' => 'Vous avez une demande de réservation en attente',
+            'field' => 'id_reserver', 'table' => 'd_reservations', 'status' => 'res',
+            'subject' => 'Vous avez une demande de réservation en attente',
             'phrase' => 'Vous avez reçu un nouveau message concernant une demande de réservation',
         ],
     ];
@@ -42,45 +42,45 @@ class JsonController extends Controller
 
     public function addOption(Request $request): Response
     {
-        return $this->demande($request, self::DEMANDES['option']);
+        return $this->createRequest($request, self::REQUEST_TYPES['option']);
     }
 
     public function addReservation(Request $request): Response
     {
-        return $this->demande($request, self::DEMANDES['reservation']);
+        return $this->createRequest($request, self::REQUEST_TYPES['reservation']);
     }
 
     public function acceptAddOption(Request $request): Response
     {
-        return $this->valider($request, 'f_confirm_ask_option', 'd_options', 'options', "Votre demande d'option a été validée", 0);
+        return $this->approve($request, 'f_confirm_ask_option', 'd_options', 'options', "Votre demande d'option a été validée", 0);
     }
 
-    public function acceptAddResa(Request $request): Response
+    public function acceptAddReservation(Request $request): Response
     {
-        return $this->valider($request, 'f_confirm_ask_resa', 'd_reservations', 'reservations', 'Votre demande de réservation a été validée', 3);
+        return $this->approve($request, 'f_confirm_ask_resa', 'd_reservations', 'reservations', 'Votre demande de réservation a été validée', 3);
     }
 
-    public function rejetAddOption(Request $request): Response
+    public function rejectAddOption(Request $request): Response
     {
-        return $this->rejeter($request, 'f_refuser_ask_option', 'd_options', 'r_options', "Votre demande d'option a été refusée");
+        return $this->reject($request, 'f_refuser_ask_option', 'd_options', 'r_options', "Votre demande d'option a été refusée");
     }
 
-    public function rejetAddResa(Request $request): Response
+    public function rejectAddReservation(Request $request): Response
     {
-        return $this->rejeter($request, 'f_refuser_ask_resa', 'd_reservations', 'r_reservations', 'Votre demande de réservation a été refusée');
+        return $this->reject($request, 'f_refuser_ask_resa', 'd_reservations', 'r_reservations', 'Votre demande de réservation a été refusée');
     }
 
-    public function acceptAddDenonciation(Request $request): Response
+    public function acceptAddReferral(Request $request): Response
     {
-        return $this->denonciation($request, 'f_confirm_ask_denonciation', 'prospects', 'Votre demande de dénonciation a été validée', 3);
+        return $this->referral($request, 'f_confirm_ask_denonciation', 'prospects', 'Votre demande de dénonciation a été validée', 3);
     }
 
-    public function rejetAddDenonciation(Request $request): Response
+    public function rejectAddReferral(Request $request): Response
     {
-        return $this->denonciation($request, 'f_refuser_ask_denonciation', 'r_prospects', 'Votre demande de dénonciation a été refusée', 0);
+        return $this->referral($request, 'f_refuser_ask_denonciation', 'r_prospects', 'Votre demande de dénonciation a été refusée', 0);
     }
 
-    public function passerEnResa(Request $request): Response
+    public function convertToReservation(Request $request): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -89,7 +89,7 @@ class JsonController extends Controller
         if ($lot === '' || $user === '') {
             return $this->errors(0);
         }
-        $sms = $this->remplir($sms, $user, $lot, DB::table('options')->where('iduser', (int) $user)->where('idlot', (int) $lot)->where('statut', 1)->value('nom'));
+        $sms = $this->fill($sms, $user, $lot, DB::table('options')->where('iduser', (int) $user)->where('idlot', (int) $lot)->where('statut', 1)->value('nom'));
 
         $ok = DB::transaction(function () use ($lot, $user) {
             $option = DB::table('options')->where('iduser', (int) $user)->where('idlot', (int) $lot)->where('statut', 1)->lockForUpdate()->get();
@@ -103,23 +103,23 @@ class JsonController extends Controller
             ]);
             DB::table('options')->where('iduser', (int) $user)->where('idlot', (int) $lot)->where('statut', 1)->delete();
 
-            return $this->setStatut($lot, 'res');
+            return $this->setStatus($lot, 'res');
         });
 
-        return $this->conclure($ok, $user, $lot, $sms, 'Votre option a été passée en réservation');
+        return $this->conclude($ok, $user, $lot, $sms, 'Votre option a été passée en réservation');
     }
 
-    public function annulerOption(Request $request): Response
+    public function cancelOption(Request $request): Response
     {
-        return $this->annuler($request, 'f_annuler_option', 'options', 'Votre option a été annulée');
+        return $this->cancel($request, 'f_annuler_option', 'options', 'Votre option a été annulée');
     }
 
-    public function annulerResa(Request $request): Response
+    public function cancelReservation(Request $request): Response
     {
-        return $this->annuler($request, 'f_annuler_resa', 'reservations', 'Votre réservation a été annulée');
+        return $this->cancel($request, 'f_annuler_resa', 'reservations', 'Votre réservation a été annulée');
     }
 
-    public function passerEnActer(Request $request): Response
+    public function convertToDeed(Request $request): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -132,7 +132,7 @@ class JsonController extends Controller
             return $this->errors(0);
         }
         $client = DB::table($table)->where('idlot', (int) $lot)->where('statut', 1)->first(['iduser', 'nom']);
-        $sms = $this->remplir($sms, (string) ($client->iduser ?? ''), $lot, $client->nom ?? null);
+        $sms = $this->fill($sms, (string) ($client->iduser ?? ''), $lot, $client->nom ?? null);
 
         $client = DB::transaction(function () use ($table, $lot) {
             $rows = DB::table($table)->where('idlot', (int) $lot)->where('statut', 1)->lockForUpdate()->get();
@@ -152,37 +152,37 @@ class JsonController extends Controller
             return (string) $row->iduser;
         });
 
-        return $this->conclure($client !== null, (string) $client, $lot, $sms, 'Votre dossier a été acté');
+        return $this->conclude($client !== null, (string) $client, $lot, $sms, 'Votre dossier a été acté');
     }
 
-    public function annulerLaVente(Request $request): Response
+    public function cancelSale(Request $request): Response
     {
         if (! $this->posted($request)) {
             return response('');
         }
-        $vendeur = $this->input($request, 'f_annuler_la_vente_vendeur');
+        $seller = $this->input($request, 'f_annuler_la_vente_vendeur');
         $lot = $this->input($request, 'f_annuler_la_vente_idlot');
         $sms = $this->input($request, 'f_annuler_la_vente_sms');
-        if ($lot === '' || $vendeur === '') {
+        if ($lot === '' || $seller === '') {
             return $this->errors(0);
         }
-        $sms = $this->remplir($sms, $vendeur, $lot, DB::table('appartements')->where('id', (int) $lot)->value('client'));
+        $sms = $this->fill($sms, $seller, $lot, DB::table('appartements')->where('id', (int) $lot)->value('client'));
 
-        $ok = DB::transaction(function () use ($lot, $vendeur) {
-            $updated = DB::table('appartements')->where('id', (int) $lot)->where('vendeur', (int) $vendeur)
+        $ok = DB::transaction(function () use ($lot, $seller) {
+            $updated = DB::table('appartements')->where('id', (int) $lot)->where('vendeur', (int) $seller)
                 ->update(['statut' => '', 'client' => '', 'vendeur' => 0]);
             if ($updated !== 1) {
                 return false;
             }
-            DB::table('ventes')->where('idlot', (int) $lot)->where('iduser', (int) $vendeur)->where('statut', 1)->update(['statut' => 0]);
+            DB::table('ventes')->where('idlot', (int) $lot)->where('iduser', (int) $seller)->where('statut', 1)->update(['statut' => 0]);
 
             return true;
         });
 
-        return $this->conclure($ok, $vendeur, $lot, $sms, 'La vente a été annulée');
+        return $this->conclude($ok, $seller, $lot, $sms, 'La vente a été annulée');
     }
 
-    public function deleteDenonciation(Request $request): Response
+    public function deleteReferral(Request $request): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -199,17 +199,17 @@ class JsonController extends Controller
         }
         $id = $this->input($request, 'idlot');
         $time = $this->input($request, 'time');
-        $cible = self::DATES[$this->input($request, 'type')] ?? null;
-        if ($cible === null || ! ctype_digit($id) || ! $this->isDateTime($time)) {
+        $target = self::DATES[$this->input($request, 'type')] ?? null;
+        if ($target === null || ! ctype_digit($id) || ! $this->isDateTime($time)) {
             return $this->errors(0);
         }
-        [$table, $colonne, $cle, $actif] = $cible;
-        $count = DB::table($table)->where($cle, (int) $id)->when($actif, fn ($q) => $q->where('statut', 1))->update([$colonne => $time]);
+        [$table, $column, $key, $active] = $target;
+        $count = DB::table($table)->where($key, (int) $id)->when($active, fn ($q) => $q->where('statut', 1))->update([$column => $time]);
 
         return $this->errors($count === 1 ? 1 : 0);
     }
 
-    private function demande(Request $request, array $demande): Response
+    private function createRequest(Request $request, array $pendingRequest): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -218,54 +218,54 @@ class JsonController extends Controller
         if (! $user instanceof User) {
             return $this->errors(0);
         }
-        $civilite = $this->input($request, 'civilite');
+        $salutation = $this->input($request, 'civilite');
         $name = $this->input($request, 'name');
-        $prenom = $this->input($request, 'prenom');
-        $adr = $this->input($request, 'adr');
+        $firstName = $this->input($request, 'prenom');
+        $address = $this->input($request, 'adr');
         $cp = $this->input($request, 'cp');
         $message = $this->input($request, 'message');
-        $idlot = $this->input($request, $demande['champ']);
-        $idprojet = $this->input($request, 'id_projet');
+        $idlot = $this->input($request, $pendingRequest['field']);
+        $programId = $this->input($request, 'id_projet');
         $sender = $user->id;
-        $choix = $this->input($request, 'prescripteur_select');
-        if ($user->isAdmin() && $choix !== '' && $choix !== '0') {
-            if (! ctype_digit($choix)) {
+        $choice = $this->input($request, 'prescripteur_select');
+        if ($user->isAdmin() && $choice !== '' && $choice !== '0') {
+            if (! ctype_digit($choice)) {
                 return $this->errors(0);
             }
-            $sender = (int) $choix;
+            $sender = (int) $choice;
         }
         if (! DB::table('user')->where('id', $sender)->exists()) {
             return $this->errors(0);
         }
-        if (in_array('', [$prenom, $adr, $message, $idlot, $idprojet], true)) {
+        if (in_array('', [$firstName, $address, $message, $idlot, $programId], true)) {
             return $this->errors(0);
         }
-        if (! ctype_digit($idlot) || ! ctype_digit($idprojet) || ! Access::canSeeLot($user, (int) $idlot)) {
+        if (! ctype_digit($idlot) || ! ctype_digit($programId) || ! Access::canSeeLot($user, (int) $idlot)) {
             return $this->errors(2);
         }
 
-        $ok = DB::transaction(function () use ($demande, $civilite, $name, $prenom, $adr, $cp, $message, $idlot, $idprojet, $sender) {
-            if (DB::table($demande['table'])->where('iddlot', (int) $idlot)->lockForUpdate()->exists()) {
+        $ok = DB::transaction(function () use ($pendingRequest, $salutation, $name, $firstName, $address, $cp, $message, $idlot, $programId, $sender) {
+            if (DB::table($pendingRequest['table'])->where('iddlot', (int) $idlot)->lockForUpdate()->exists()) {
                 return false;
             }
-            $updated = DB::table('appartements')->where('id', (int) $idlot)->where('lot', $idprojet)
+            $updated = DB::table('appartements')->where('id', (int) $idlot)->where('lot', $programId)
                 ->where(fn ($q) => $q->where('statut', '')->orWhereNull('statut'))
-                ->update(['statut' => $demande['statut']]);
+                ->update(['statut' => $pendingRequest['status']]);
             if ($updated !== 1) {
                 return false;
             }
             $now = now()->format('Y-m-d H:i:s');
-            DB::table($demande['table'])->insert([
-                'nom' => self::normalize($civilite.' '.$name.' '.$prenom),
+            DB::table($pendingRequest['table'])->insert([
+                'nom' => self::normalize($salutation.' '.$name.' '.$firstName),
                 'iduser' => $sender,
-                'adresse' => self::normalize($adr.' '.$cp),
+                'adresse' => self::normalize($address.' '.$cp),
                 'message' => self::normalize($message),
                 'iddlot' => (int) $idlot,
-                'idprojet' => (int) $idprojet,
+                'idprojet' => (int) $programId,
                 'date' => $now,
             ]);
             DB::table('mp')->insert([
-                'idemetteur' => $sender, 'idreceveur' => 1, 'sujet' => self::normalize($demande['sujet']),
+                'idemetteur' => $sender, 'idreceveur' => 1, 'sujet' => self::normalize($pendingRequest['subject']),
                 'message' => self::normalize($message), 'date' => $now, 'lu' => 0,
                 'cle' => bin2hex(random_bytes(20)), 'parent' => 0,
             ]);
@@ -275,21 +275,21 @@ class JsonController extends Controller
         if (! $ok) {
             return $this->errors(2);
         }
-        Mail::to((string) config('mail.corim.address'))->send(WorkflowMail::corim($demande['sujet'], $demande['phrase']));
+        Mail::to((string) config('mail.corim.address'))->send(WorkflowMail::corim($pendingRequest['subject'], $pendingRequest['phrase']));
 
         return $this->errors(1);
     }
 
-    private function valider(Request $request, string $prefix, string $from, string $to, string $sujet, int $vide): Response
+    private function approve(Request $request, string $prefix, string $from, string $to, string $subject, int $emptyCode): Response
     {
         if (! $this->posted($request)) {
             return response('');
         }
         [$lot, $user, $sms] = $this->triplet($request, $prefix);
         if ($lot === '' || $user === '') {
-            return $this->errors($vide);
+            return $this->errors($emptyCode);
         }
-        $sms = $this->remplir($sms, $user, $lot, DB::table($from)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->value('nom'));
+        $sms = $this->fill($sms, $user, $lot, DB::table($from)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->value('nom'));
 
         $ok = DB::transaction(function () use ($from, $to, $lot, $user, $sms) {
             $row = DB::table($from)->join('projet', "$from.idprojet", '=', 'projet.projet_id')
@@ -306,10 +306,10 @@ class JsonController extends Controller
             return DB::table($from)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->delete() === 1;
         });
 
-        return $this->conclure($ok, $user, $lot, $sms, $sujet);
+        return $this->conclude($ok, $user, $lot, $sms, $subject);
     }
 
-    private function rejeter(Request $request, string $prefix, string $table, string $refus, string $sujet): Response
+    private function reject(Request $request, string $prefix, string $table, string $rejection, string $subject): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -318,14 +318,14 @@ class JsonController extends Controller
         if ($lot === '' || $user === '') {
             return $this->errors(0);
         }
-        $sms = $this->remplir($sms, $user, $lot, DB::table($table)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->value('nom'));
+        $sms = $this->fill($sms, $user, $lot, DB::table($table)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->value('nom'));
 
-        $ok = DB::transaction(function () use ($table, $refus, $lot, $user, $sms) {
+        $ok = DB::transaction(function () use ($table, $rejection, $lot, $user, $sms) {
             $row = DB::table($table)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->lockForUpdate()->first();
             if ($row === null) {
                 return false;
             }
-            DB::table($refus)->insert([
+            DB::table($rejection)->insert([
                 'iduser' => $row->iduser, 'nom' => $row->nom, 'adresse' => $row->adresse,
                 'message' => $row->message.self::SEPARATOR.self::normalize($sms),
                 'idlot' => $row->iddlot, 'idprojet' => $row->idprojet,
@@ -334,13 +334,13 @@ class JsonController extends Controller
             ]);
 
             return DB::table($table)->where('iduser', (int) $user)->where('iddlot', (int) $lot)->delete() >= 1
-                && $this->setStatut($lot, '');
+                && $this->setStatus($lot, '');
         });
 
-        return $this->conclure($ok, $user, $lot, $sms, $sujet);
+        return $this->conclude($ok, $user, $lot, $sms, $subject);
     }
 
-    private function annuler(Request $request, string $prefix, string $table, string $sujet): Response
+    private function cancel(Request $request, string $prefix, string $table, string $subject): Response
     {
         if (! $this->posted($request)) {
             return response('');
@@ -349,44 +349,44 @@ class JsonController extends Controller
         if ($lot === '' || $user === '') {
             return $this->errors(0);
         }
-        $sms = $this->remplir($sms, $user, $lot, DB::table($table)->where('idlot', (int) $lot)->where('statut', 1)->value('nom'));
+        $sms = $this->fill($sms, $user, $lot, DB::table($table)->where('idlot', (int) $lot)->where('statut', 1)->value('nom'));
 
         $ok = DB::transaction(fn () => DB::table($table)->where('idlot', (int) $lot)->where('statut', 1)->update(['statut' => 0]) >= 1
-            && $this->setStatut($lot, ''));
+            && $this->setStatus($lot, ''));
 
-        return $this->conclure($ok, $user, $lot, $sms, $sujet);
+        return $this->conclude($ok, $user, $lot, $sms, $subject);
     }
 
-    private function denonciation(Request $request, string $prefix, string $to, string $sujet, int $vide): Response
+    private function referral(Request $request, string $prefix, string $to, string $subject, int $emptyCode): Response
     {
         if (! $this->posted($request)) {
             return response('');
         }
         [$id, $user, $sms] = $this->triplet($request, $prefix);
         if ($id === '' || $user === '') {
-            return $this->errors($vide);
+            return $this->errors($emptyCode);
         }
-        $refus = $to === 'r_prospects';
-        $demande = DB::table('d_prospects')->where('idprospect', (int) $id)->first(['nomprospect', 'idprojet', 'iduser']);
-        $sms = $this->remplir($sms, (string) ($demande->iduser ?? $user), null, $demande->nomprospect ?? null, (int) ($demande->idprojet ?? 0));
+        $rejection = $to === 'r_prospects';
+        $pendingRequest = DB::table('d_prospects')->where('idprospect', (int) $id)->first(['nomprospect', 'idprojet', 'iduser']);
+        $sms = $this->fill($sms, (string) ($pendingRequest->iduser ?? $user), null, $pendingRequest->nomprospect ?? null, (int) ($pendingRequest->idprojet ?? 0));
 
-        $prospect = DB::transaction(function () use ($id, $user, $sms, $to, $refus) {
+        $prospect = DB::transaction(function () use ($id, $user, $sms, $to, $rejection) {
             $row = DB::table('d_prospects')->join('projet', 'd_prospects.idprojet', '=', 'projet.projet_id')
-                ->where('d_prospects.idprospect', (int) $id)->when(! $refus, fn ($q) => $q->where('d_prospects.iduser', (int) $user))
+                ->where('d_prospects.idprospect', (int) $id)->when(! $rejection, fn ($q) => $q->where('d_prospects.iduser', (int) $user))
                 ->lockForUpdate()->first(['d_prospects.*', 'projet.projet_titre']);
             if ($row === null) {
                 return null;
             }
-            $copie = [
+            $copy = [
                 'nomprospect' => $row->nomprospect, 'cpprospect' => $row->cpprospect, 'villeprospect' => $row->villeprospect,
                 'smspromoteur' => $row->smspromoteur.self::SEPARATOR.self::normalize($sms),
                 'idprojet' => $row->idprojet, 'iduser' => $row->iduser, 'date' => $row->date,
             ];
-            if ($refus) {
+            if ($rejection) {
                 DB::table('r_prospects')->where('idprospect', $row->idprospect)->delete();
-                $copie = ['idprospect' => $row->idprospect] + $copie + ['date_refus' => now()->format('Y-m-d H:i:s')];
+                $copy = ['idprospect' => $row->idprospect] + $copy + ['date_refus' => now()->format('Y-m-d H:i:s')];
             }
-            DB::table($to)->insert($copie);
+            DB::table($to)->insert($copy);
             DB::table('d_prospects')->where('idprospect', $row->idprospect)->delete();
 
             return $row;
@@ -394,24 +394,24 @@ class JsonController extends Controller
         if ($prospect === null) {
             return $this->errors(0);
         }
-        $this->envoyer($user, WorkflowMail::prescripteur($sujet, $sms, (string) $prospect->projet_titre, 'Client', (string) $prospect->nomprospect));
+        $this->send($user, WorkflowMail::prescriber($subject, $sms, (string) $prospect->projet_titre, 'Client', (string) $prospect->nomprospect));
 
         return $this->errors(1);
     }
 
-    private function conclure(bool $ok, string $user, string $lot, string $sms, string $sujet): Response
+    private function conclude(bool $ok, string $user, string $lot, string $sms, string $subject): Response
     {
         if (! $ok) {
             return $this->errors(0);
         }
         $infos = DB::table('appartements')->join('projet', 'appartements.lot', '=', 'projet.projet_id')
             ->where('appartements.id', (int) $lot)->first(['projet.projet_titre', 'appartements.numero']);
-        $this->envoyer($user, WorkflowMail::prescripteur($sujet, $sms, (string) ($infos->projet_titre ?? ''), 'Référence lot', (string) ($infos->numero ?? '')));
+        $this->send($user, WorkflowMail::prescriber($subject, $sms, (string) ($infos->projet_titre ?? ''), 'Référence lot', (string) ($infos->numero ?? '')));
 
         return $this->errors(1);
     }
 
-    private function envoyer(string $user, WorkflowMail $mail): void
+    private function send(string $user, WorkflowMail $mail): void
     {
         $email = (string) DB::table('user')->where('id', (int) $user)->value('email');
         if ($email !== '') {
@@ -419,26 +419,26 @@ class JsonController extends Controller
         }
     }
 
-    private function remplir(string $sms, string $user, ?string $lot, mixed $acquereur, ?int $projet = null): string
+    private function fill(string $sms, string $user, ?string $lot, mixed $buyer, ?int $program = null): string
     {
         if (! str_contains($sms, '{')) {
             return $sms;
         }
-        $appartement = $lot !== null ? DB::table('appartements')->where('id', (int) $lot)->first(['numero', 'lot']) : null;
-        $projet ??= (int) ($appartement->lot ?? 0);
-        $texte = fn (mixed $value) => html_entity_decode((string) $value, ENT_QUOTES);
+        $apartment = $lot !== null ? DB::table('appartements')->where('id', (int) $lot)->first(['numero', 'lot']) : null;
+        $program ??= (int) ($apartment->lot ?? 0);
+        $text = fn (mixed $value) => html_entity_decode((string) $value, ENT_QUOTES);
 
         return strtr($sms, [
-            '{prescripteur}' => $texte(DB::table('user')->where('id', (int) $user)->value('name')),
-            '{programme}' => $texte(DB::table('projet')->where('projet_id', $projet)->value('projet_titre')),
-            '{lot}' => $texte($appartement->numero ?? ''),
-            '{acquereur}' => $texte($acquereur),
+            '{prescripteur}' => $text(DB::table('user')->where('id', (int) $user)->value('name')),
+            '{programme}' => $text(DB::table('projet')->where('projet_id', $program)->value('projet_titre')),
+            '{lot}' => $text($apartment->numero ?? ''),
+            '{acquereur}' => $text($buyer),
         ]);
     }
 
-    private function setStatut(string $lot, string $statut): bool
+    private function setStatus(string $lot, string $status): bool
     {
-        return DB::table('appartements')->where('id', (int) $lot)->update(['statut' => $statut]) === 1;
+        return DB::table('appartements')->where('id', (int) $lot)->update(['statut' => $status]) === 1;
     }
 
     private function triplet(Request $request, string $prefix): array

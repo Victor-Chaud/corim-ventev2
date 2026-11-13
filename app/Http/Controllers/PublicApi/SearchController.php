@@ -68,31 +68,31 @@ class SearchController extends LegacyApiController
         return $news === [] ? ['errors' => '<b>Aucun flash info actuellement.</b>'] : ['errors' => 1, 'data' => $news];
     }
 
-    private function withref(mixed $programme, mixed $ref): mixed
+    private function withref(mixed $program, mixed $ref): mixed
     {
         if ($ref === null) {
             return ['errors' => self::NO_RESULT_HTTP];
         }
 
         return $this->found($this->lots()->where('appartements.numero', $this->str($ref))
-            ->when((int) $programme !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $programme))
+            ->when((int) $program !== 0, fn (Builder $q) => $q->where('appartements.lot', (int) $program))
             ->orderBy('projet.projet_titre')->orderBy('appartements.prix'), self::NO_RESULT_HTTP);
     }
 
     private function search(Request $request): mixed
     {
         $get = $request->query();
-        $geographique = (int) $this->normalize($get['geographique'] ?? null);
-        $livraison = $this->normalize($get['livraison'] ?? null);
-        $typologie = empty($get['typologie']) ? '0' : $get['typologie'];
+        $geographic = (int) $this->normalize($get['geographique'] ?? null);
+        $delivery = $this->normalize($get['livraison'] ?? null);
+        $typology = empty($get['typologie']) ? '0' : $get['typologie'];
         $type = $this->normalize($get['type'] ?? null);
 
         $query = $this->lots()->where('appartements.statut', '')
-            ->when($geographique === 1, fn (Builder $q) => $q->where('appartements.ville', 'MONTPELLIER'))
-            ->when($geographique === 3, fn (Builder $q) => $q->where('appartements.ville', '!=', 'MONTPELLIER'))
-            ->when($typologie != '0', fn (Builder $q) => $this->typologie($q, $typologie))
+            ->when($geographic === 1, fn (Builder $q) => $q->where('appartements.ville', 'MONTPELLIER'))
+            ->when($geographic === 3, fn (Builder $q) => $q->where('appartements.ville', '!=', 'MONTPELLIER'))
+            ->when($typology != '0', fn (Builder $q) => $this->typology($q, $typology))
             ->when($type != '0', fn (Builder $q) => $q->where('appartements.categorie', 'like', '%'.$this->str($type).'%'))
-            ->when($livraison != '0', fn (Builder $q) => $q->where('appartements.date', $this->str($livraison)));
+            ->when($delivery != '0', fn (Builder $q) => $q->where('appartements.date', $this->str($delivery)));
 
         return $this->found($this->budget($query, $this->normalize($get['budget'] ?? null))
             ->orderBy('projet.projet_titre')->orderBy('appartements.prix'), self::NO_RESULT_HTTPS);

@@ -2,9 +2,9 @@
 
 use Illuminate\Support\Facades\Hash;
 
-function login(string $identifiant, string $password)
+function login(string $username, string $password)
 {
-    return test()->post('/connexion', ['action' => 'connexion', 'identifiant' => $identifiant, 'password' => $password]);
+    return test()->post('/connexion', ['action' => 'connexion', 'identifiant' => $username, 'password' => $password]);
 }
 
 it('C1 la page de connexion s\'affiche avec le formulaire et la modale', function () {

@@ -48,7 +48,7 @@ class FlashInfoController extends Controller
             'title' => self::TITLE.'Ajouter un Flash Info pour Corim Promotion',
             'valid' => $valid,
             'error' => $error,
-            'programmes' => MessageController::programmes(),
+            'programs' => MessageController::programs(),
         ]);
     }
 
@@ -76,7 +76,7 @@ class FlashInfoController extends Controller
             'valid' => $valid,
             'error' => $error,
             'info' => DB::table('news')->where('id', $id)->first(),
-            'programmes' => MessageController::programmes(),
+            'programs' => MessageController::programs(),
         ]);
     }
 

@@ -4,10 +4,7 @@
 <div class="page-header">
   <h1>Dénonciations refusées</h1>
 </div>
-<div class="form-group">
-	<a href="/denonciations" class="pull-right btn btn-primary">Dénonciations</a>
-	<div class="clearfix"></div>
-</div>
+@include('workflow.partials.referral-tabs', ['active' => 'refused'])
 
 <table width="100%" cellpadding="5" cellspacing="5" class="tablesorter-green">
 <thead>
@@ -40,4 +37,5 @@
 @endforeach
 </tbody>
 </table>
+{{ $rows->links() }}
 @endsection

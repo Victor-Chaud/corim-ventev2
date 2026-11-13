@@ -102,6 +102,30 @@ Note client : « Suivi perf tel ».
 
 ---
 
+## Mode sombre
+
+1. [ ] En haut à droite, l'icône lune est visible. Un clic passe la page en gris foncé avec le texte en blanc, et l'icône devient un soleil.
+2. [ ] Les couleurs ne changent pas : boutons bleus et rouges, lots réservé, optionné et acté dans la grille, alertes.
+3. [ ] Recharger la page, puis changer de page : le mode sombre reste actif, sans flash blanc.
+4. [ ] Passer en revue en sombre : tableau de bord, fiche programme (grille des lots), options (cliquer dans une date : calendrier), privilèges, fiche prescripteur, messages automatiques, messagerie. Tout reste lisible.
+5. [ ] Sur téléphone (ou F12, mode téléphone) : l'icône est à gauche du bouton menu et fonctionne.
+6. [ ] Un nouveau clic revient au mode clair.
+
+## Non-régression après la mise à jour technique
+
+Bibliothèques passées à jQuery 3.7, jQuery UI 1.13, Bootstrap 3.4.1, et nouvelle politique de sécurité (CSP). Rien ne doit avoir changé à l'écran.
+
+1. [ ] Tri des tableaux en cliquant sur les en-têtes, et champs « Recherche… » sous les en-têtes.
+2. [ ] Calendrier qui s'ouvre au clic dans une date, et changement de date enregistré.
+3. [ ] Fenêtres de confirmation (valider, refuser, annuler) qui s'ouvrent et se ferment.
+4. [ ] Listes déroulantes avec recherche (choix d'un prescripteur dans les privilèges ou l'emailing).
+5. [ ] Grille des lots de la fiche programme : chargement, tri, sélection d'un lot, boutons OPTIONNER et RÉSERVER.
+6. [ ] Emailing et flash info : l'éditeur de texte s'affiche avec sa barre d'outils et la saisie fonctionne (le bandeau rouge « version not secure » existait déjà).
+7. [ ] Page « Rapport » : le lien IMPRIMER ouvre l'impression.
+8. [ ] Envoi de fichiers : documents d'un programme (PDF, image, Word, Excel), puis téléchargement de chacun depuis la fiche programme.
+9. [ ] Tableau de bord : chaque badge correspond au nombre de lignes de la page vers laquelle il mène.
+10. [ ] En prescripteur, un message s'affiche bien quand on crée une demande d'option sans prénom (champ obligatoire), et la demande passe sans nom de famille ni code postal, comme avant.
+
 ## Non fait volontairement
 
 - **Lot 5, retrait des fonctions inutilisées** : reporté à ta demande, liste à valider avec la cliente.

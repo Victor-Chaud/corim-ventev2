@@ -125,7 +125,7 @@ function legacyTestHash(string $password): string
     return hash('sha256', TEST_LEGACY_SALT.htmlspecialchars($password, ENT_QUOTES));
 }
 
-function makeUser(int $acces, array $attributes = []): User
+function makeUser(int $access, array $attributes = []): User
 {
     static $n = 0;
     $n++;
@@ -138,7 +138,7 @@ function makeUser(int $acces, array $attributes = []): User
         'reponse' => '',
         'statut' => 1,
     ], $attributes));
-    DB::table('privileges')->insert(['iduser' => $id, 'acces' => $acces]);
+    DB::table('privileges')->insert(['iduser' => $id, 'acces' => $access]);
 
     return User::findOrFail($id);
 }
@@ -153,14 +153,14 @@ function makeCommercial(array $attributes = []): User
     return makeUser(0, $attributes);
 }
 
-function makeProjet(array $attributes = []): object
+function makeProgram(array $attributes = []): object
 {
     static $n = 0;
     $n++;
-    $titre = $attributes['projet_titre'] ?? "PROGRAMME TEST $n";
+    $title = $attributes['projet_titre'] ?? "PROGRAMME TEST $n";
     $id = DB::table('projet')->insertGetId(array_merge([
-        'projet_titre' => $titre,
-        'projet_titre_key' => md5($titre),
+        'projet_titre' => $title,
+        'projet_titre_key' => md5($title),
         'projet_lieu' => 'MONTPELLIER',
         'projet_image' => '',
         'projet_nb_appartements' => 0,
@@ -173,12 +173,12 @@ function makeProjet(array $attributes = []): object
     return DB::table('projet')->where('projet_id', $id)->first();
 }
 
-function makeLot(int $projetId, array $attributes = []): object
+function makeLot(int $programId, array $attributes = []): object
 {
     static $n = 0;
     $n++;
     $id = DB::table('appartements')->insertGetId(array_merge([
-        'lot' => (string) $projetId,
+        'lot' => (string) $programId,
         'date' => '2T2028',
         'dept' => 34,
         'ville' => 'MONTPELLIER',
